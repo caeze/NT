@@ -32,13 +32,13 @@ public class SplashScreenUtil {
                     splashScreen = new JWindow();
                     ImageIcon ii = ImageStore.getImageIcon(image);
                     JLabel label = new JLabel(ii);
-                    label.setBackground(Color.white);
+                    label.setBackground(new Color(0, 0, 0, 0));
                     label.setOpaque(true);
                     label.setSize(ii.getIconWidth(), ii.getIconHeight());
                     splashScreen.add(label);
                     splashScreen.setSize(ii.getIconWidth(), ii.getIconHeight());
-                    splashScreen.setBackground(Color.white);
                     splashScreen.setLocationRelativeTo(null);
+                    splashScreen.setBackground(new Color(0, 0, 0, 0));
                     splashScreen.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
                     splashScreen.setVisible(true);
                 } catch (Exception e) {
