@@ -16,7 +16,7 @@ import view.img.ImageStore;
 public class ButtonUtil {
 
     public final static int PERCENTAGE_TO_LIGHT_UP_DEFAULT = 0;
-    public final static int PERCENTAGE_TO_LIGHT_UP_HOVER = 100;
+    public final static int PERCENTAGE_TO_LIGHT_UP_HOVER = 120;
     public final static int PERCENTAGE_TO_LIGHT_UP_ON_CLICK = 400;
     public final static float ALPHA_DEFAULT = 0.8f;
     public final static float ALPHA_HOVER = 0.9f;
