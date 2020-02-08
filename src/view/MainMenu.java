@@ -121,7 +121,7 @@ public class MainMenu implements IViewComponent {
         JButton emptyProjectButton = ButtonUtil.createButton(new Runnable() {
             @Override
             public void run() {
-                View.getInstance().setContent(Editor.getInstance());
+                View.getInstance().setContent(ClassEditor.getInstance());
                 Control.getInstance().loadEmptyProject();
             }
         }, "emptyProject.png", 256, 64);
@@ -132,7 +132,7 @@ public class MainMenu implements IViewComponent {
         JButton loadProjectButton = ButtonUtil.createButton(new Runnable() {
             @Override
             public void run() {
-                View.getInstance().setContent(Editor.getInstance());
+                View.getInstance().setContent(ClassEditor.getInstance());
                 Control.getInstance().loadProjectFromDisk();
             }
         }, "loadProject.png", 256, 64);
@@ -143,7 +143,7 @@ public class MainMenu implements IViewComponent {
         JButton downloadProjectButton = ButtonUtil.createButton(new Runnable() {
             @Override
             public void run() {
-                View.getInstance().setContent(Editor.getInstance());
+                View.getInstance().setContent(ClassEditor.getInstance());
                 Control.getInstance().loadProjectFromNetwork();
             }
         }, "downloadProject.png", 256, 64);

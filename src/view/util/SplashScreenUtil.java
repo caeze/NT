@@ -19,52 +19,61 @@ import view.img.ImageStore;
  */
 public class SplashScreenUtil {
 
-    private static JWindow splashScreen;
+	private static JWindow splashScreen;
 
-    /**
-     * Shows a small modal splash screen in the center of the screen.
-     * @param image the image to show
-     */
-    public static void showSplashScreen(String image) {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    splashScreen = new JWindow();
-                    ImageIcon ii = ImageStore.getImageIcon(image);
-                    JLabel label = new JLabel(ii);
-                    label.setBackground(new Color(0, 0, 0, 0));
-                    label.setOpaque(true);
-                    label.setSize(ii.getIconWidth(), ii.getIconHeight());
-                    splashScreen.add(label);
-                    splashScreen.setSize(ii.getIconWidth(), ii.getIconHeight());
-                    splashScreen.setLocationRelativeTo(null);
-                    splashScreen.setBackground(new Color(0, 0, 0, 0));
-                    splashScreen.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
-                    splashScreen.setVisible(true);
-                } catch (Exception e) {
-                    Log.error(SplashScreenUtil.class, e.getMessage());
-                    killSplashScreen();
-                }
-            }
-        });
-    }
+	/**
+	 * Shows a small modal splash screen in the center of the screen.
+	 * 
+	 * @param image the image to show
+	 */
+	public static void showSplashScreen(String image) {
+		showSplashScreen(ImageStore.getImageIcon(image));
+	}
 
-    /**
-     * Destroys the current splash screen in the center of the screen.
-     */
-    public static void killSplashScreen() {
-        SwingUtilities.invokeLater(new Runnable() {
-            public void run() {
-                try {
-                    if (splashScreen != null && splashScreen.isDisplayable()) {
-                        splashScreen.dispose();
-                        splashScreen = null;
-                        System.gc();
-                    }
-                } catch (Exception e) {
-                    Log.error(SplashScreenUtil.class, e.getMessage());
-                }
-            }
-        });
-    }
+	/**
+	 * Shows a small modal splash screen in the center of the screen.
+	 * 
+	 * @param image the image to show
+	 */
+	public static void showSplashScreen(ImageIcon image) {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					splashScreen = new JWindow();
+					JLabel label = new JLabel(image);
+					label.setBackground(new Color(0, 0, 0, 0));
+					label.setOpaque(true);
+					label.setSize(image.getIconWidth(), image.getIconHeight());
+					splashScreen.add(label);
+					splashScreen.setSize(image.getIconWidth(), image.getIconHeight());
+					splashScreen.setLocationRelativeTo(null);
+					splashScreen.setBackground(new Color(0, 0, 0, 0));
+					splashScreen.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
+					splashScreen.setVisible(true);
+				} catch (Exception e) {
+					Log.error(SplashScreenUtil.class, e.getMessage());
+					killSplashScreen();
+				}
+			}
+		});
+	}
+
+	/**
+	 * Destroys the current splash screen in the center of the screen.
+	 */
+	public static void killSplashScreen() {
+		SwingUtilities.invokeLater(new Runnable() {
+			public void run() {
+				try {
+					if (splashScreen != null && splashScreen.isDisplayable()) {
+						splashScreen.dispose();
+						splashScreen = null;
+						System.gc();
+					}
+				} catch (Exception e) {
+					Log.error(SplashScreenUtil.class, e.getMessage());
+				}
+			}
+		});
+	}
 }

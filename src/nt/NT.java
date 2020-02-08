@@ -24,6 +24,8 @@ public class NT {
     public static boolean IS_DEBUG = false;
     public static OperatingSystem OS = OperatingSystem.WINDOWS;
     public static String lastOpenedProjectFile = "";
+    public static int STUDENT_IMAGE_WIDTH = 32;
+    public static int STUDENT_IMAGE_HEIGHT = 32;
 
     /**
      * Main entry point of the application.

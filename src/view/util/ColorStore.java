@@ -28,7 +28,8 @@ public class ColorStore {
     public static final Color BACKGROUND_DIALOG = new Color(65, 100, 100);
     public static final Color BACKGROUND_CONSOLE = new Color(20, 20, 20);
     public static final Color FOREGROUND_CONSOLE = new Color(200, 200, 200);
-    public static final Color FOREGROUND_EDITOR = new Color(20, 20, 20);
+    public static final Color TABLE_COLOR = new Color(20, 20, 20);
+    public static final Color CHAIR_COLOR = new Color(20, 20, 100);
 
     public static ColorUIResource convertToColorUIResource(Color c) {
         return new ColorUIResource(c.getRed(), c.getGreen(), c.getBlue());
