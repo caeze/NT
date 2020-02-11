@@ -5,12 +5,12 @@ import java.util.List;
 import util.ListUtil;
 
 /**
- * Test class for {@link model.util.ListUtil}.
+ * Test class for {@link util.ListUtil}.
  *
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public class ListUtilTest {
+public class ListUtilTest implements Testable {
 
     public boolean makeDeepCopyTest() {
         // prepare data

@@ -1,8 +1,19 @@
 package model;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
+import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
+
+import org.json.simple.JSONObject;
+import org.json.simple.parser.JSONParser;
+
+import console.Log;
+import nt.NT;
 
 /**
  * Data class for a student.
@@ -18,16 +29,17 @@ public class Student {
 	private Date dateOfBirth;
 	private String email;
 	private String mobilePhone;
+	private String comment;
 	private byte[] image;
 
-	public Student(UUID uuid, String firstName, String lastName, Date dateOfBirth, String email, String mobilePhone, byte[] image) {
-		super();
+	public Student(UUID uuid, String firstName, String lastName, Date dateOfBirth, String email, String mobilePhone, String comment, byte[] image) {
 		this.uuid = uuid;
 		this.firstName = firstName;
 		this.lastName = lastName;
 		this.dateOfBirth = dateOfBirth;
 		this.email = email;
 		this.mobilePhone = mobilePhone;
+		this.comment = comment;
 		this.image = image;
 	}
 
@@ -79,6 +91,14 @@ public class Student {
 		this.mobilePhone = mobilePhone;
 	}
 
+	public String getComment() {
+		return comment;
+	}
+
+	public void setComment(String comment) {
+		this.comment = comment;
+	}
+
 	public byte[] getImage() {
 		return image;
 	}
@@ -98,6 +118,7 @@ public class Student {
 		result = prime * result + ((lastName == null) ? 0 : lastName.hashCode());
 		result = prime * result + ((mobilePhone == null) ? 0 : mobilePhone.hashCode());
 		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+		result = prime * result + ((comment == null) ? 0 : comment.hashCode());
 		return result;
 	}
 
@@ -142,11 +163,86 @@ public class Student {
 				return false;
 		} else if (!uuid.equals(other.uuid))
 			return false;
+		if (comment == null) {
+			if (other.comment != null)
+				return false;
+		} else if (!comment.equals(other.comment))
+			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "Student [uuid=" + uuid + ", firstName=" + firstName + ", lastName=" + lastName + ", dateOfBirth=" + dateOfBirth + ", email=" + email + ", mobilePhone=" + mobilePhone + ", image=" + Arrays.toString(image) + "]";
+		return "Student [uuid=" + uuid + ", firstName=" + firstName + ", lastName=" + lastName + ", dateOfBirth=" + dateOfBirth + ", email=" + email + ", mobilePhone=" + mobilePhone + ", comment=" + comment + ", image=" + Arrays.toString(image) + "]";
+	}
+
+	public static String toJsonString(Student student) {
+		return toJsonObject(student).toJSONString();
+	}
+
+	@SuppressWarnings("unchecked")
+	public static JSONObject toJsonObject(Student student) {
+		JSONObject objToReturn = new JSONObject();
+		objToReturn.put("uuid", student.getUuid().toString());
+		objToReturn.put("firstName", student.getFirstName());
+		objToReturn.put("lastName", student.getLastName());
+		objToReturn.put("dateOfBirth", NT.SDF.format(student.getDateOfBirth()));
+		objToReturn.put("email", student.getEmail());
+		objToReturn.put("mobilePhone", student.getMobilePhone());
+		objToReturn.put("comment", student.getComment());
+		objToReturn.put("image", dataToCompressedBase64String(student.getImage()));
+		return objToReturn;
+	}
+
+	public static Student fromJsonString(String jsonString) {
+		try {
+			return fromJsonObject((JSONObject) new JSONParser().parse(jsonString));
+		} catch (Exception e) {
+			Log.error(Student.class, "Could not parse student! " + e.getMessage());
+		}
+		return null;
+	}
+
+	public static Student fromJsonObject(JSONObject jsonObject) throws Exception {
+		UUID uuid = UUID.fromString((String) jsonObject.get("uuid"));
+		String firstName = (String) jsonObject.get("firstName");
+		String lastName = (String) jsonObject.get("lastName");
+		Date dateOfBirth = NT.SDF.parse((String) jsonObject.get("dateOfBirth"));
+		String email = (String) jsonObject.get("email");
+		String mobilePhone = (String) jsonObject.get("mobilePhone");
+		String comment = (String) jsonObject.get("comment");
+		byte[] image = compressedBase64StringToData((String) jsonObject.get("image"));
+		return new Student(uuid, firstName, lastName, dateOfBirth, email, mobilePhone, comment, image);
+	}
+
+	private static String dataToCompressedBase64String(byte[] data) {
+		try {
+			ByteArrayOutputStream rstBao = new ByteArrayOutputStream();
+			GZIPOutputStream zos = new GZIPOutputStream(rstBao);
+			zos.write(data);
+			zos.close();
+			return Base64.getEncoder().encodeToString(rstBao.toByteArray());
+		} catch (Exception e) {
+			Log.error(Student.class, "Error compressing String: " + Arrays.toString(data) + ": " + e);
+		}
+		return null;
+	}
+
+	private static byte[] compressedBase64StringToData(String zippedBase64Str) {
+		try {
+			byte[] bytes = Base64.getDecoder().decode(zippedBase64Str);
+			byte[] buffer = new byte[1024];
+			ByteArrayOutputStream out = new ByteArrayOutputStream();
+			GZIPInputStream zis = new GZIPInputStream(new ByteArrayInputStream(bytes));
+			int len;
+			while ((len = zis.read(buffer)) > 0) {
+				out.write(buffer, 0, len);
+			}
+			zis.close();
+			return out.toByteArray();
+		} catch (Exception e) {
+			Log.error(Student.class, "Error uncompressing String: " + zippedBase64Str + ": " + e);
+		}
+		return null;
 	}
 }

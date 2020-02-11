@@ -2,6 +2,9 @@ package nt;
 
 import console.Log;
 import control.Control;
+
+import java.text.SimpleDateFormat;
+
 import javax.swing.UIManager;
 import test.TestSuite;
 import view.util.LoadingAnimation;
@@ -26,6 +29,7 @@ public class NT {
     public static String lastOpenedProjectFile = "";
     public static int STUDENT_IMAGE_WIDTH = 32;
     public static int STUDENT_IMAGE_HEIGHT = 32;
+	public static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
 
     /**
      * Main entry point of the application.
@@ -40,8 +44,8 @@ public class NT {
         setLookAndFeel();
 
         // show a splash screen
-        SplashScreenUtil.showSplashScreen("NTLogo.png");
-        LoadingAnimation.showLoadingAnim();
+        //SplashScreenUtil.showSplashScreen("NTLogo.png");
+        //LoadingAnimation.showLoadingAnim();
 
         // run unit tests, but only if in debug mode
         if (IS_DEBUG) {

@@ -8,21 +8,21 @@ package model;
  */
 public class Model {
 
-    private static Model instance;
+	private static Model instance;
 
-    private Model() {
-        // hide constructor, singleton pattern
-    }
+	private Model() {
+		// hide constructor, singleton pattern
+	}
 
-    /**
-     * Get an instance, singleton pattern.
-     *
-     * @return an instance
-     */
-    public static Model getInstance() {
-        if (instance == null) {
-            instance = new Model();
-        }
-        return instance;
-    }
+	/**
+	 * Get an instance, singleton pattern.
+	 *
+	 * @return an instance
+	 */
+	public static Model getInstance() {
+		if (instance == null) {
+			instance = new Model();
+		}
+		return instance;
+	}
 }

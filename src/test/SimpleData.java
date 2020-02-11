@@ -6,7 +6,7 @@ import java.util.Objects;
  * Simple data class for testing.
  *
  * @author Clemens Strobel
- * @date 19.05.2019
+ * @date 2020/02/04
  */
 public class SimpleData {
 

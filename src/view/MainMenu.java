@@ -121,7 +121,7 @@ public class MainMenu implements IViewComponent {
         JButton emptyProjectButton = ButtonUtil.createButton(new Runnable() {
             @Override
             public void run() {
-                View.getInstance().setContent(ClassEditor.getInstance());
+                View.getInstance().setContent(CharacteristicCurveEditor.getInstance());
                 Control.getInstance().loadEmptyProject();
             }
         }, "emptyProject.png", 256, 64);

@@ -1,8 +1,5 @@
 package view;
 
-import console.Log;
-import model.Student;
-
 import java.awt.Desktop;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
@@ -16,35 +13,41 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.net.URI;
 import java.util.ArrayList;
-import java.util.Base64;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
+
+import console.Log;
+import model.CharacteristicCurve;
+import model.RelativePoint;
 import preferences.Preferences;
-import view.img.ImageStore;
 import view.itf.IViewComponent;
 import view.util.ButtonUtil;
 import view.util.ColorStore;
 
 /**
- * Main Menu screen.
+ * Characteristic curve editor screen.
  *
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public class ClassEditor implements IViewComponent {
+public class CharacteristicCurveEditor implements IViewComponent {
+	
+	private static final double PADDING = 0.1;
 
-	private static ClassEditor instance;
+	private static CharacteristicCurveEditor instance;
 
-	private ClassEditorBoard editor = new ClassEditorBoard();
-	private List<Table> tables = new ArrayList<>();
+	private CharacteristicCurveEditorBoard editor = new CharacteristicCurveEditorBoard();
+	private CharacteristicCurve curve;
+	private RelativePoint northWest = new RelativePoint(PADDING, PADDING);
+	private RelativePoint southWest = new RelativePoint(PADDING, 1.0 - PADDING);
+	private RelativePoint northEast = new RelativePoint(1.0 - PADDING, PADDING);
+	private RelativePoint southEast = new RelativePoint(1.0 - PADDING, 1.0 - PADDING);
 
-	private ClassEditor() {
+	private CharacteristicCurveEditor() {
 		// hide constructor, singleton pattern
 	}
 
@@ -53,9 +56,9 @@ public class ClassEditor implements IViewComponent {
 	 *
 	 * @return an instance
 	 */
-	public static ClassEditor getInstance() {
+	public static CharacteristicCurveEditor getInstance() {
 		if (instance == null) {
-			instance = new ClassEditor();
+			instance = new CharacteristicCurveEditor();
 		}
 		return instance;
 	}
@@ -78,7 +81,7 @@ public class ClassEditor implements IViewComponent {
 						Desktop.getDesktop().browse(new URI(s.substring(0, s.lastIndexOf("/") + 1)));
 					}
 				} catch (Exception e) {
-					Log.error(ClassEditor.class, e.getMessage());
+					Log.error(CharacteristicCurveEditor.class, e.getMessage());
 				}
 			}
 		}, "logo.png", 48, 48);
@@ -119,64 +122,40 @@ public class ClassEditor implements IViewComponent {
 	}
 
 	private enum Mode {
-		NONE, ADD_TABLE, ADD_STUDENT;
+		NONE, ADD_POINT, MOVE_POINT;
 	}
 
-	private class Table {
-		private static final int DEFAULT_WIDTH = 60;
-		private static final int DEFAULT_HEIGHT = 20;
-		private UUID uuid;
-		private int width = DEFAULT_WIDTH;
-		private int height = DEFAULT_HEIGHT;
-		private int xPos;
-		private int yPos;
-		private List<Chair> chairs = new ArrayList<>();
-		
-		// TODO implement add chair fcn that takes into account with of table and other chairs
-	}
+	private class CharacteristicCurveEditorBoard extends JPanel implements ComponentListener, MouseListener, MouseMotionListener, MouseWheelListener {
 
-	private class Chair {
-		private static final int WIDTH = 20;
-		private static final int HEIGHT = 20;
-		private UUID uuid;
-		private Table t;
-		
-		private int getXPos() {
-			// calculate position corresponding to index in parent table
-			return 10;
-		}
-		
-		private int getYPos() {
-			// calculate position corresponding to index in parent table
-			return 10;
-		}
-		
-		// private Student student;
-	}
+		private Mode mode = Mode.ADD_POINT;
 
-	private class ClassEditorBoard extends JPanel implements ComponentListener, MouseListener, MouseMotionListener, MouseWheelListener {
-
-		private Mode mode = Mode.ADD_TABLE;
-
-		private ClassEditorBoard() {
+		private CharacteristicCurveEditorBoard() {
 			addComponentListener(this);
 			addMouseListener(this);
 			addMouseMotionListener(this);
 			addMouseWheelListener(this);
 			setBackground(ColorStore.BACKGROUND_LIGHT);
+			
+			if (curve == null) {
+				curve = new CharacteristicCurve(UUID.randomUUID(), new ArrayList<>(), "comment");
+			}
 		}
 
 		@Override
 		public void paintComponent(Graphics g) {
 			super.paintComponent(g);
 
-			for (Table t : tables) {
-				g.setColor(ColorStore.TABLE_COLOR);
-				g.fillRect(t.xPos, t.yPos, t.width, t.height);
-				g.setColor(ColorStore.CHAIR_COLOR);
-				for (Chair c : t.chairs) {
-					g.fillRect(c.getXPos(), c.getYPos(), Chair.WIDTH, Chair.HEIGHT);
-				}
+			g.setColor(ColorStore.BLACK);
+			g.drawLine(northWest.getX(getWidth()), northWest.getY(getHeight()), southWest.getX(getWidth()), southWest.getY(getHeight()));
+			g.drawLine(southWest.getX(getWidth()), southWest.getY(getHeight()), southEast.getX(getWidth()), southEast.getY(getHeight()));
+			g.drawLine(southEast.getX(getWidth()), southEast.getY(getHeight()), northEast.getX(getWidth()), northEast.getY(getHeight()));
+			g.drawLine(northEast.getX(getWidth()), northEast.getY(getHeight()), northWest.getX(getWidth()), northWest.getY(getHeight()));
+
+			g.setColor(ColorStore.CHAIR_COLOR);
+			RelativePoint lastPoint = southWest;
+			for (RelativePoint p : curve.getPoints()) {
+				g.drawLine(lastPoint.getX(getWidth()), lastPoint.getY(getHeight()), p.getX(getWidth()), p.getY(getHeight()));
+				lastPoint = p;
 			}
 		}
 
@@ -195,24 +174,12 @@ public class ClassEditor implements IViewComponent {
 		@Override
 		public void componentHidden(ComponentEvent e) {
 		}
-		
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			if (Mode.ADD_TABLE.equals(mode)) {
-				int x = e.getX();
-				int y = e.getY();
-				Chair c1 = new Chair();
-				Chair c2 = new Chair();
-				List<Chair> chairs = new ArrayList<>();
-				chairs.add(c1);
-				chairs.add(c2);
-				Table t = new Table();
-				t.xPos = x;
-				t.yPos = y;
-				t.chairs = chairs;
-				tables.add(t);
-			} else if (Mode.ADD_STUDENT.equals(mode)) {
+			if (Mode.ADD_POINT.equals(mode)) {
+				
+			} else if (Mode.MOVE_POINT.equals(mode)) {
 
 			}
 			editor.repaint();

@@ -11,7 +11,6 @@ import java.util.Date;
 import java.util.List;
 import javax.swing.JLabel;
 import model.Project;
-import model.ProjectJsonConverter;
 import preferences.Preferences;
 import view.ClassEditor;
 import view.MainMenu;
