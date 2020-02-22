@@ -20,7 +20,12 @@ public class RelativePoint {
 		this.x = x;
 		this.y = y;
 	}
-	
+
+	public RelativePoint(RelativePoint other) {
+		this.x = other.x;
+		this.y = other.y;
+	}
+
 	public double getX() {
 		return x;
 	}
@@ -36,22 +41,6 @@ public class RelativePoint {
 	public void setY(double y) {
 		this.y = y;
 	}
-
-	public int getX(int width) {
-        return (int) (x * width);
-    }
-	
-	public void setX(int x, int width) {
-		this.x = (double) x / (double) width;
-    }
-	
-	public int getY(int height) {
-        return (int) (y * height);
-    }
-	
-	public void setY(int y, int height) {
-		this.y = (double) y / (double) height;
-    }
 
 	@Override
 	public int hashCode() {
@@ -111,5 +100,23 @@ public class RelativePoint {
 		double x = (Double) jsonObject.get("x");
 		double y = (Double) jsonObject.get("y");
 		return new RelativePoint(x, y);
+	}
+
+	public static double absoluteToRelativeX(int x, int width, int padding) {
+		double xTmp = x - padding;
+		return xTmp / ((double) width - 2.0 * padding);
+	}
+
+	public static double absoluteToRelativeY(int y, int height, int padding) {
+		double yTmp = y - padding;
+		return yTmp / ((double) height - 2.0 * padding);
+	}
+
+	public static int relativeToAbsoluteX(double x, int width, int padding) {
+		return (int) (x * (width - 2.0 * padding) + padding);
+	}
+
+	public static int relativeToAbsoluteY(double y, int height, int padding) {
+		return (int) (y * (height - 2.0 * padding) + padding);
 	}
 }

@@ -29,7 +29,10 @@ public class NT {
     public static String lastOpenedProjectFile = "";
     public static int STUDENT_IMAGE_WIDTH = 32;
     public static int STUDENT_IMAGE_HEIGHT = 32;
-	public static final SimpleDateFormat SDF = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+	public static final SimpleDateFormat SDF_FOR_PERSISTING = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+	public static final SimpleDateFormat SDF_FOR_DISPLAYING_DATE_ONLY = new SimpleDateFormat("dd.MM.yyyy");
+	public static final SimpleDateFormat SDF_FOR_DISPLAYING_TIME_ONLY = new SimpleDateFormat("HH:mm:ss");
+	public static final SimpleDateFormat SDF_FOR_DISPLAYING_DATE_AND_TIME = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
 
     /**
      * Main entry point of the application.

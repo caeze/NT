@@ -9,6 +9,8 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 
 import console.Log;
+import nt.NT;
+import util.ListUtil;
 
 /**
  * Data class for a table.
@@ -28,6 +30,14 @@ public class Table {
 		this.position = position;
 		this.students = students;
 		this.comment = comment;
+	}
+
+	public Table(Table other) {
+		this.uuid = other.getUuid();
+		this.position = new RelativePoint(other.getPosition());
+		ListUtil<Student> LU = new ListUtil<>();
+		this.students = LU.makeDeepCopy(other.getStudents());
+		this.comment = other.getComment();
 	}
 
 	public UUID getUuid() {
@@ -60,6 +70,14 @@ public class Table {
 
 	public void setComment(String comment) {
 		this.comment = comment;
+	}
+	
+	public int getWidth(int imagesSpacing) {
+		return getStudents().size() * (imagesSpacing + NT.STUDENT_IMAGE_WIDTH) - imagesSpacing;
+	}
+	
+	public int getHeight() {
+		return NT.STUDENT_IMAGE_HEIGHT;
 	}
 
 	@Override

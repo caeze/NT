@@ -162,7 +162,7 @@ public abstract class AGrade {
 		objToReturn.put("type", grade.getClass().getSimpleName());
 		objToReturn.put("course", Course.toJsonObject(grade.getCourse()));
 		objToReturn.put("student", Student.toJsonObject(grade.getStudent()));
-		objToReturn.put("date", NT.SDF.format(grade.getDate()));
+		objToReturn.put("date", NT.SDF_FOR_PERSISTING.format(grade.getDate()));
 		objToReturn.put("grade", grade.getGrade());
 		objToReturn.put("name", grade.getName());
 		objToReturn.put("comment", grade.getComment());
@@ -177,7 +177,7 @@ public abstract class AGrade {
 			String type = (String) jsonObject.get("type");
 			Course course = Course.fromJsonObject((JSONObject) jsonObject.get("course"));
 			Student student = Student.fromJsonObject((JSONObject) jsonObject.get("student"));
-			Date date = NT.SDF.parse((String) jsonObject.get("date"));
+			Date date = NT.SDF_FOR_PERSISTING.parse((String) jsonObject.get("date"));
 			double grade = (Double) jsonObject.get("grade");
 			String name = (String) jsonObject.get("name");
 			String comment = (String) jsonObject.get("comment");

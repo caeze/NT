@@ -164,8 +164,8 @@ public class Exam {
 		JSONObject objToReturn = new JSONObject();
 		objToReturn.put("uuid", exam.getUuid().toString());
 		objToReturn.put("name", exam.getName());
-		objToReturn.put("gradeType", exam.getGradeType().toString());
-		objToReturn.put("characteristicCurve", exam.getCharacteristicCurve());
+		objToReturn.put("gradeType", GradeType.toJsonObject(exam.getGradeType()));
+		objToReturn.put("characteristicCurve", CharacteristicCurve.toJsonObject(exam.getCharacteristicCurve()));
 		JSONArray tasksJSONArray = new JSONArray();
 		for (Task t : exam.getTasks()) {
 			tasksJSONArray.add(Task.toJsonObject(t));
@@ -192,7 +192,7 @@ public class Exam {
 	public static Exam fromJsonObject(JSONObject jsonObject) throws Exception {
 		UUID uuid = UUID.fromString((String) jsonObject.get("uuid"));
 		String name = (String) jsonObject.get("name");
-		GradeType gradeType = GradeType.valueOf(((String) jsonObject.get("gradeType")));
+		GradeType gradeType = GradeType.fromJsonObject((JSONObject) jsonObject.get("gradeType"));
 		CharacteristicCurve characteristicCurve = CharacteristicCurve.fromJsonObject((JSONObject) jsonObject.get("characteristicCurve"));
 		List<Task> tasks = new ArrayList<>();
 		for (Object taskJSONObject : (JSONArray) jsonObject.get("tasks")) {

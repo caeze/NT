@@ -2,6 +2,7 @@ package view;
 
 import console.Log;
 import control.Control;
+
 import java.awt.Desktop;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -117,37 +118,51 @@ public class MainMenu implements IViewComponent {
         constraints.anchor = GridBagConstraints.CENTER;
         constraints.ipadx = 0;
         constraints.ipady = 0;
-        
-        JButton emptyProjectButton = ButtonUtil.createButton(new Runnable() {
+
+        JButton currentYearButton = ButtonUtil.createButton(new Runnable() {
             @Override
             public void run() {
-                View.getInstance().setContent(CharacteristicCurveEditor.getInstance());
-                Control.getInstance().loadEmptyProject();
+                
             }
-        }, "emptyProject.png", 256, 64);
-        retComponent.add(emptyProjectButton, constraints);
-        
+        }, "directory.png", "current year...", 18, ColorStore.BLACK, L10n.getString("editYear"));
+        retComponent.add(currentYearButton, constraints);
+
         constraints.gridy = 1;
-        constraints.anchor = GridBagConstraints.CENTER;
-        JButton loadProjectButton = ButtonUtil.createButton(new Runnable() {
+        JButton manageGradesButton = ButtonUtil.createButton(new Runnable() {
             @Override
             public void run() {
-                View.getInstance().setContent(ClassEditor.getInstance());
-                Control.getInstance().loadProjectFromDisk();
+                
             }
-        }, "loadProject.png", 256, 64);
-        retComponent.add(loadProjectButton, constraints);
-        
+        }, "done.png", L10n.getString("manageGrades"), 18, ColorStore.BLACK, L10n.getString("manageGrades"));
+        retComponent.add(manageGradesButton, constraints);
+
         constraints.gridy = 2;
-        constraints.anchor = GridBagConstraints.CENTER;
-        JButton downloadProjectButton = ButtonUtil.createButton(new Runnable() {
+        JButton manageCoursesButton = ButtonUtil.createButton(new Runnable() {
             @Override
             public void run() {
-                View.getInstance().setContent(ClassEditor.getInstance());
-                Control.getInstance().loadProjectFromNetwork();
+                
             }
-        }, "downloadProject.png", 256, 64);
-        retComponent.add(downloadProjectButton, constraints);
+        }, "right.png", L10n.getString("manageCourses"), 18, ColorStore.BLACK, L10n.getString("manageCourses"));
+        retComponent.add(manageCoursesButton, constraints);
+
+        constraints.gridy = 3;
+        JButton manageStudentsButton = ButtonUtil.createButton(new Runnable() {
+            @Override
+            public void run() {
+                View.getInstance().setContent(StudentsList.getInstance());
+            }
+        }, "persons.png", L10n.getString("manageStudents"), 18, ColorStore.BLACK, L10n.getString("manageStudents"));
+        retComponent.add(manageStudentsButton, constraints);
+
+        constraints.gridy = 4;
+        JButton manageRoomsButton = ButtonUtil.createButton(new Runnable() {
+            @Override
+            public void run() {
+                
+            }
+        }, "home.png", L10n.getString("manageRooms"), 18, ColorStore.BLACK, L10n.getString("manageRooms"));
+        retComponent.add(manageRoomsButton, constraints);
+        
         return retComponent;
     }
 

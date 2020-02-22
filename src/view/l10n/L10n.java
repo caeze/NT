@@ -13,19 +13,19 @@ import preferences.Preferences;
  */
 public class L10n {
 
-    public static String getString(String key) {
-        try {
-            InputStream input = L10n.class.getResource(Preferences.getInstance().locale.getLanguage() + ".properties").openStream();
-            Properties prop = new Properties();
-            prop.load(input);
-            String value = prop.getProperty(key);
-            if (value != null) {
-                return value;
-            }
-            return "!" + key + "!";
-        } catch (Exception e) {
-            Log.error(L10n.class, e.getMessage());
-        }
-        return "!" + key + "!";
-    }
+	public static String getString(String key) {
+		try {
+			InputStream input = L10n.class.getResource(Preferences.getInstance().locale.getLanguage() + ".properties").openStream();
+			Properties prop = new Properties();
+			prop.load(input);
+			String value = prop.getProperty(key);
+			if (value != null) {
+				return value;
+			}
+			return "!" + key + "!";
+		} catch (Exception e) {
+			Log.error(L10n.class, e.getMessage());
+		}
+		return "!" + key + "!";
+	}
 }

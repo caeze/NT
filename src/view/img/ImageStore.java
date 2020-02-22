@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.Transparency;
 import java.awt.color.ColorSpace;
@@ -43,17 +44,15 @@ public class ImageStore {
 		return createResourceNotFoundImage();
 	}
 
-	public static ImageIcon getImageForButton(String imageFileName, int width, int height, int percentToLightUp, float newAlpha) {
-		ImageIcon iconToReturn = null;
+	public static ImageIcon getImageForButton(ImageIcon icon, int width, int height, int percentToLightUp, float newAlpha) {
 		try {
-			iconToReturn = ImageStore.getImageIcon(imageFileName);
-			iconToReturn = getScaledImage(iconToReturn, width, height);
-			iconToReturn = lightImageUp(iconToReturn, percentToLightUp);
-			iconToReturn = setImageAlphaValues(iconToReturn, newAlpha);
+			icon = getScaledImage(icon, width, height);
+			icon = lightImageUp(icon, percentToLightUp);
+			icon = setImageAlphaValues(icon, newAlpha);
 		} catch (Exception e) {
 			Log.error(ImageStore.class, e.getMessage());
 		}
-		return iconToReturn;
+		return icon;
 	}
 
 	public static ImageIcon getScaledImage(ImageIcon srcImg, int width, int height) {
@@ -88,6 +87,19 @@ public class ImageStore {
 		return new ImageIcon(image);
 	}
 
+	public static ImageIcon createImageIconWithIconAndText(ImageIcon srcImg, String text, int fontSize, Color foregroundColor) {
+		ImageIcon textIcon = createImageIconFromText(text, fontSize, foregroundColor);
+		ImageIcon backgroundIcon = getImageIcon("buttonBackground.png");
+		Image image = new BufferedImage(backgroundIcon.getIconWidth(), backgroundIcon.getIconHeight(), BufferedImage.TYPE_INT_ARGB);
+		Graphics2D g2 = (Graphics2D) image.getGraphics();
+		g2.drawImage(backgroundIcon.getImage(), 0, 0, null);
+		g2.drawImage(srcImg.getImage(), 0, 0, null);
+		int spacing = (int) (2 + srcImg.getImage().getWidth(null) + (backgroundIcon.getImage().getWidth(null) - srcImg.getImage().getWidth(null) - textIcon.getImage().getWidth(null)) / 2.7);
+		g2.drawImage(textIcon.getImage(), spacing, 21, null);
+		g2.dispose();
+		return new ImageIcon(image);
+	}
+
 	public static ImageIcon createImageIconFromText(String text, int fontSize, Color foregroundColor) {
 		return createImageIconFromText(text, fontSize, foregroundColor, null);
 	}
@@ -98,7 +110,7 @@ public class ImageStore {
 		Font font = new Font("Arial", Font.PLAIN, fontSize);
 		g2d.setFont(font);
 		FontMetrics fm = g2d.getFontMetrics();
-		int width = fm.stringWidth(text);
+		int width = (int) fm.getStringBounds(text, g2d.create()).getWidth() + 10;
 		int height = fm.getHeight();
 		g2d.dispose();
 
@@ -137,7 +149,7 @@ public class ImageStore {
 		return data.getData();
 	}
 
-	private static ImageIcon createResourceNotFoundImage() {
+	public static ImageIcon createResourceNotFoundImage() {
 		byte[] imageBytes = { -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1,
 				28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, 20, 24, 0,
 				0, 0, 53, 0, 0, 0, 0, 0, 0, 31, 16, 53, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, 0, 11, -87, 14, 0, 0, -1, 28, -87, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28, 0, -1, 28,

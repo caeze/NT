@@ -1,8 +1,12 @@
 package view.util;
 
 import console.Log;
+import view.img.ImageStore;
+
 import java.awt.Color;
 import java.awt.Dialog;
+import java.awt.SystemTray;
+import java.awt.TrayIcon;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -77,6 +81,7 @@ public class ShowToast {
                     toastScreen.add(label);
                     toastScreen.setBackground(Color.white);
                     toastScreen.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
+                    toastScreen.setType(JWindow.Type.POPUP);
                     toastScreen.setVisible(true);
                     toastScreen.pack();
                     if (isCentered) {

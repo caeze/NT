@@ -5,6 +5,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
 import java.util.zip.GZIPOutputStream;
@@ -14,6 +15,7 @@ import org.json.simple.parser.JSONParser;
 
 import console.Log;
 import nt.NT;
+import view.img.ImageStore;
 
 /**
  * Data class for a student.
@@ -21,7 +23,9 @@ import nt.NT;
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public class Student {
+public class Student extends AObject {
+	
+	private static List<String> MEMBERS = Arrays.asList("uuid", "firstName", "lastName", "dateOfBirth", "email", "mobilePhone", "comment", "image");
 
 	private UUID uuid;
 	private String firstName;
@@ -41,6 +45,18 @@ public class Student {
 		this.mobilePhone = mobilePhone;
 		this.comment = comment;
 		this.image = image;
+	}
+
+	public Student(Student other) {
+		this.uuid = other.getUuid();
+		this.firstName = other.getFirstName();
+		this.lastName = other.getLastName();
+		this.dateOfBirth = other.getDateOfBirth();
+		this.email = other.getEmail();
+		this.mobilePhone = other.getMobilePhone();
+		this.comment = other.getComment();
+		this.image = new byte[other.getImage().length];
+		System.arraycopy(other.getImage(), 0, this.image, 0, other.getImage().length);
 	}
 
 	public UUID getUuid() {
@@ -105,6 +121,11 @@ public class Student {
 
 	public void setImage(byte[] image) {
 		this.image = image;
+	}
+
+	public static Student getDummyStudent() {
+		byte[] bytes = ImageStore.getBytesFromImage(ImageStore.getScaledImage(ImageStore.getImageIcon(""), NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT));
+		return new Student(UUID.randomUUID(), "DUMMY_STUDENT_firstName", "DUMMY_STUDENT_lastName", new Date(), "DUMMY_STUDENT_email", "mobilePhone", "DUMMY_STUDENT_comment", bytes);
 	}
 
 	@Override
@@ -186,7 +207,7 @@ public class Student {
 		objToReturn.put("uuid", student.getUuid().toString());
 		objToReturn.put("firstName", student.getFirstName());
 		objToReturn.put("lastName", student.getLastName());
-		objToReturn.put("dateOfBirth", NT.SDF.format(student.getDateOfBirth()));
+		objToReturn.put("dateOfBirth", NT.SDF_FOR_PERSISTING.format(student.getDateOfBirth()));
 		objToReturn.put("email", student.getEmail());
 		objToReturn.put("mobilePhone", student.getMobilePhone());
 		objToReturn.put("comment", student.getComment());
@@ -207,7 +228,7 @@ public class Student {
 		UUID uuid = UUID.fromString((String) jsonObject.get("uuid"));
 		String firstName = (String) jsonObject.get("firstName");
 		String lastName = (String) jsonObject.get("lastName");
-		Date dateOfBirth = NT.SDF.parse((String) jsonObject.get("dateOfBirth"));
+		Date dateOfBirth = NT.SDF_FOR_PERSISTING.parse((String) jsonObject.get("dateOfBirth"));
 		String email = (String) jsonObject.get("email");
 		String mobilePhone = (String) jsonObject.get("mobilePhone");
 		String comment = (String) jsonObject.get("comment");
@@ -244,5 +265,10 @@ public class Student {
 			Log.error(Student.class, "Error uncompressing String: " + zippedBase64Str + ": " + e);
 		}
 		return null;
+	}
+
+	@Override
+	protected List<String> getMembers() {
+		return MEMBERS;
 	}
 }
