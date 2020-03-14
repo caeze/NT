@@ -1,7 +1,11 @@
 package util;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import console.Log;
-import java.util.*;
 
 /**
  * Class for handling of lists. E.g. making deep copies of lists. The objects in
@@ -20,7 +24,7 @@ public class ListUtil<T> {
 		}
 		try {
 			for (T element : list) {
-				Class c = element.getClass();
+				Class<?> c = element.getClass();
 				T newElement = (T) c.getDeclaredConstructor(c).newInstance(element);
 				retList.add(newElement);
 			}

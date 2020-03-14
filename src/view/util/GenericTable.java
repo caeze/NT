@@ -6,15 +6,21 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.lang.reflect.Method;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import javax.swing.AbstractCellEditor;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
@@ -27,8 +33,12 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableRowSorter;
 
 import console.Log;
+import model.AObject;
+import model.LazyAObject;
+import model.Model;
 import nt.NT;
 import view.img.ImageStore;
+import view.itf.TableAction;
 import view.l10n.L10n;
 
 /**
@@ -37,7 +47,7 @@ import view.l10n.L10n;
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public class GenericTable<T> extends JComponent {
+public class GenericTable<T extends AObject> extends JComponent {
 
 	private JTable t;
 	private JTextField tf;
@@ -45,15 +55,10 @@ public class GenericTable<T> extends JComponent {
 	private TableRowSorter<TableModel> sorter;
 	private boolean initDone = false;
 
-	public GenericTable(List<T> items, List<String> columnNames, List<Class<?>> columnClasses, List<String> columnGetters, List<String> columnSetters, List<Integer> editableRows) {
+	public GenericTable(List<T> items, List<String> columnNames, List<Class<?>> columnClasses, List<Method> columnGetters, List<Method> columnSetters, List<Integer> editableColumns, Map<Integer, TableAction> actions) {
 		t = new JTable();
-		tm = new TableModel(items, columnNames, columnClasses, columnGetters, columnSetters, editableRows);
-		SwingUtilities.invokeLater(new Runnable() {
-			@Override
-			public void run() {
-				t.setModel(tm);
-			}
-		});
+		tm = new TableModel(items, columnNames, columnClasses, columnGetters, columnSetters, editableColumns, actions);
+		t.setModel(tm);
 		JScrollPane scrollPane = new JScrollPane(t);
 
 		GridBagLayout gridBagLayout = new GridBagLayout();
@@ -95,6 +100,14 @@ public class GenericTable<T> extends JComponent {
 		return t;
 	}
 
+	public TableModel getModel() {
+		return tm;
+	}
+
+	public void fireTableDataChanged() {
+		tm.fireTableDataChanged();
+	}
+
 	private void init() {
 		if (initDone) {
 			return;
@@ -116,23 +129,35 @@ public class GenericTable<T> extends JComponent {
 
 	private void setRenderersAndEditors() {
 		for (int i = 0; i < tm.columnClasses.size(); i++) {
-			if (isByteArray(tm.columnClasses.get(i))) {
-				t.getColumn(tm.columnNames.get(i)).setCellRenderer(new IconRenderer());
+			if (AObject.isByteArray(tm.columnClasses.get(i))) {
+				t.getColumn(tm.columnNames.get(i)).setCellRenderer(new ImageRenderer());
 				t.getColumn(tm.columnNames.get(i)).setMaxWidth(NT.STUDENT_IMAGE_WIDTH + 3);
-			} else if (isDate(tm.columnClasses.get(i))) {
+			} else if (AObject.isDate(tm.columnClasses.get(i))) {
 				t.getColumn(tm.columnNames.get(i)).setCellRenderer(new DateRenderer());
+				t.getColumn(tm.columnNames.get(i)).setCellEditor(new DateEditor());
+			} else if (AObject.isList(tm.columnClasses.get(i))) {
+				t.getColumn(tm.columnNames.get(i)).setCellRenderer(new ListRenderer());
+			} else if (AObject.isLazyAObject(tm.columnClasses.get(i))) {
+				t.getColumn(tm.columnNames.get(i)).setCellRenderer(new LazyAObjectRenderer());
+			} else {
+				t.getColumn(tm.columnNames.get(i)).setCellRenderer(new IconAndTextRenderer());
+			}
+		}
+		for (Integer i : tm.actions.keySet()) {
+			TableActionMouseListener ml = new TableActionMouseListener(tm.actions.get(i), i);
+			IconAndTextRenderer r = ((IconAndTextRenderer) t.getColumn(tm.columnNames.get(i)).getCellRenderer());
+			r.setMouseListener(ml);
+			r.setTextToDisplay(tm.actions.get(i).getText());
+			r.setIconToDisplay(tm.actions.get(i).getIcon());
+			if (tm.actions.get(i).getText().isEmpty()) {
+				t.getColumn(tm.columnNames.get(i)).setMaxWidth(NT.STUDENT_IMAGE_WIDTH + 3);
 			}
 		}
 
-		for (int i = 0; i < tm.columnClasses.size(); i++) {
-			if (isDate(tm.columnClasses.get(i))) {
-				t.getColumn(tm.columnNames.get(i)).setCellEditor(new DateEditor());
-			}
-		}
 	}
 
 	private void setFilter(String filterText) {
-		javax.swing.SwingUtilities.invokeLater(new Runnable() {
+		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				try {
 					int[] indices = new int[tm.columnNames.size()];
@@ -148,21 +173,23 @@ public class GenericTable<T> extends JComponent {
 		});
 	}
 
-	private class TableModel extends AbstractTableModel {
+	public class TableModel extends AbstractTableModel {
 		private List<T> items;
 		private List<String> columnNames = new ArrayList<>();
 		private List<Class<?>> columnClasses = new ArrayList<>();
-		private List<String> columnGetters = new ArrayList<>();
-		private List<String> columnSetters = new ArrayList<>();
-		private List<Integer> editableRows = new ArrayList<>();
+		private List<Method> columnGetters = new ArrayList<>();
+		private List<Method> columnSetters = new ArrayList<>();
+		private List<Integer> editableColumns = new ArrayList<>();
+		private Map<Integer, TableAction> actions = new HashMap<>();
 
-		public TableModel(List<T> items, List<String> columnNames, List<Class<?>> columnClasses, List<String> columnGetters, List<String> columnSetters, List<Integer> editableRows) {
+		public TableModel(List<T> items, List<String> columnNames, List<Class<?>> columnClasses, List<Method> columnGetters, List<Method> columnSetters, List<Integer> editableColumns, Map<Integer, TableAction> actions) {
 			this.items = items;
 			this.columnNames = columnNames;
 			this.columnClasses = columnClasses;
 			this.columnGetters = columnGetters;
 			this.columnSetters = columnSetters;
-			this.editableRows = editableRows;
+			this.editableColumns = editableColumns;
+			this.actions = actions;
 		}
 
 		@Override
@@ -172,6 +199,9 @@ public class GenericTable<T> extends JComponent {
 
 		@Override
 		public Class<?> getColumnClass(int columnIndex) {
+			if (columnIndex >= columnClasses.size()) {
+				return Object.class;
+			}
 			return columnClasses.get(columnIndex);
 		}
 
@@ -187,77 +217,166 @@ public class GenericTable<T> extends JComponent {
 
 		@Override
 		public boolean isCellEditable(int row, int column) {
-			return editableRows.contains(row);
+			return editableColumns.contains(column);
 		}
 
 		@Override
 		public Object getValueAt(int rowIndex, int columnIndex) {
 			init();
+			if (columnIndex >= columnGetters.size()) {
+				return null;
+			}
 
-			String getterName = columnGetters.get(columnIndex);
+			Method getter = columnGetters.get(columnIndex);
 			T objectToGetFrom = items.get(rowIndex);
 			try {
-				Method m = objectToGetFrom.getClass().getMethod(getterName);
-				return m.invoke(objectToGetFrom);
+				return getter.invoke(objectToGetFrom);
 			} catch (Exception e) {
-				Log.error(GenericTable.class, "Could not find getter '" + getterName + "' for object " + objectToGetFrom + "! " + e.getMessage());
+				Log.error(GenericTable.class, "Could not invoke getter '" + getter + "' for object " + objectToGetFrom + "! " + e.getMessage());
 			}
 			return null;
 		}
 
 		@Override
 		public void setValueAt(Object value, int rowIndex, int columnIndex) {
-			String setterName = columnSetters.get(columnIndex);
+			if (columnIndex >= columnSetters.size()) {
+				return;
+			}
+
+			Method setter = columnSetters.get(columnIndex);
 			T objectToSetOn = items.get(rowIndex);
 			try {
-				Method m = objectToSetOn.getClass().getMethod(setterName, columnClasses.get(columnIndex));
-				m.invoke(objectToSetOn, value);
+				setter.invoke(objectToSetOn, value);
 			} catch (Exception e) {
-				Log.error(GenericTable.class, "Could not find setter '" + setterName + "' for object " + objectToSetOn + "! " + e.getMessage());
+				Log.error(GenericTable.class, "Could not invoke setter '" + setter + "' for object " + objectToSetOn + "! " + e.getMessage());
 			}
 			fireTableCellUpdated(rowIndex, columnIndex);
 		}
 	}
 
-	private class DefaultRenderer extends DefaultTableCellRenderer {
+	private class GenericRenderer extends DefaultTableCellRenderer implements MouseListener {
+		private MouseListener ml;
+
+		public void setMouseListener(MouseListener ml) {
+			this.ml = ml;
+		}
+
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			ml.mouseClicked(e);
+		}
+
+		@Override
+		public void mouseEntered(MouseEvent e) {
+			ml.mouseEntered(e);
+		}
+
+		@Override
+		public void mouseExited(MouseEvent e) {
+			ml.mouseExited(e);
+		}
+
+		@Override
+		public void mousePressed(MouseEvent e) {
+			ml.mousePressed(e);
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent e) {
+			ml.mouseReleased(e);
+		}
+	}
+
+	private class DefaultRenderer extends GenericRenderer {
+		@Override
 		public void setValue(Object value) {
 			setText(value.toString());
 		}
 	}
 
-	private class DateRenderer extends DefaultTableCellRenderer {
+	private class DateRenderer extends GenericRenderer {
+		@Override
 		public void setValue(Object value) {
-			if (isDate(value)) {
+			if (AObject.isDate(value)) {
 				setText(NT.SDF_FOR_DISPLAYING_DATE_ONLY.format((Date) value).toString());
 			} else {
-				setText("OBJECT_NOT_A_DATE");
 				Log.error(GenericTable.class, "DateRenderer: given object was not a date!");
 			}
 		}
 	}
 
-	private class ListRenderer extends DefaultTableCellRenderer {
+	private class ListRenderer extends GenericRenderer {
+		@Override
 		public void setValue(Object value) {
-			if (isList(value)) {
-				setText("List size: " + ((List<?>) value).size());
+			if (AObject.isList(value)) {
+				setText(L10n.getString("numberOfElements") + ": " + ((List<?>) value).size());
 			} else {
-				setText("OBJECT_NOT_A_LIST");
 				Log.error(GenericTable.class, "ListRenderer: given object was not a list!");
 			}
 		}
 	}
 
-	private class IconRenderer extends DefaultTableCellRenderer {
+	private class LazyAObjectRenderer extends GenericRenderer {
+		@Override
 		public void setValue(Object value) {
-			if (isByteArray(value)) {
+			if (AObject.isMissingAObject(value)) {
+				if (t.getSelectedRow() >= 0 && t.getSelectedColumn() >= 0) {
+					Object val = tm.getValueAt(t.convertRowIndexToModel(t.getSelectedRow()), t.convertColumnIndexToModel(t.getSelectedColumn()));
+					if (AObject.isString(val)) {
+						setText((String) val);
+					} else {
+						setText(L10n.getString("valueNotYetSet"));
+					}
+				} else {
+					setText(L10n.getString("valueNotYetSet"));
+				}
+				setIcon(ImageStore.getScaledImage(ImageStore.getImageIcon("edit.png"), NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT));
+			} else if (AObject.isLazyAObject(value)) {
+				setText(Model.getInstance().expandLazyAObject((LazyAObject<?>) value).toString());
+			} else {
+				Log.error(GenericTable.class, "ListRenderer: given object was not a LazyAObject!");
+			}
+		}
+	}
+
+	private class IconAndTextRenderer extends GenericRenderer {
+		String icon;
+		String text;
+
+		private void setTextToDisplay(String text) {
+			this.text = text;
+		}
+
+		private void setIconToDisplay(String icon) {
+			this.icon = icon;
+		}
+
+		@Override
+		public void setValue(Object value) {
+			if (icon != null && !icon.isEmpty()) {
+				setIcon(ImageStore.getScaledImage(ImageStore.getImageIcon(icon), NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT));
+			}
+
+			if (text != null && !text.isEmpty()) {
+				setText(text);
+			} else if (value != null) {
+				setText(value.toString());
+			} else {
+				setText("");
+			}
+		}
+	}
+
+	private class ImageRenderer extends IconAndTextRenderer {
+		@Override
+		public void setValue(Object value) {
+			if (AObject.isByteArray(value)) {
 				byte[] bytes = (byte[]) value;
 				setIcon(new ImageIcon(ImageStore.createRGBImage(bytes, NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT)));
 			} else {
-				setText("OBJECT_NOT_A_BYTE_ARRAY");
 				Log.error(GenericTable.class, "IconRenderer: given object was not a byte array!");
 			}
 		}
-
 	}
 
 	private class DefaultEditor extends AbstractCellEditor implements TableCellEditor {
@@ -277,11 +396,13 @@ public class GenericTable<T> extends JComponent {
 	}
 
 	private class DateEditor extends AbstractCellEditor implements TableCellEditor {
-		JTextField textField = new JTextField();
+		private JTextField textField = new JTextField();
+		private Date currentDate;
 
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int rowIndex, int vColIndex) {
-			String s = NT.SDF_FOR_DISPLAYING_DATE_ONLY.format((Date) value).toString();
+			currentDate = (Date) value;
+			String s = NT.SDF_FOR_DISPLAYING_DATE_ONLY.format(currentDate).toString();
 			textField.setText(s);
 			return textField;
 		}
@@ -292,57 +413,55 @@ public class GenericTable<T> extends JComponent {
 			try {
 				return NT.SDF_FOR_DISPLAYING_DATE_ONLY.parse((String) value);
 			} catch (ParseException e) {
+				GenericDialog dialog = new GenericDialog(L10n.getString("wrongFormat"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("pleaseEnterDateInFollowingFormat") + ": " + NT.SDF_FOR_DISPLAYING_DATE_ONLY.toPattern().toUpperCase()))), true);
+				dialog.show();
+
 				Log.error(GenericTable.class, "Could not parse date, probably wrong format, use: " + NT.SDF_FOR_DISPLAYING_DATE_ONLY + "!");
 			}
-			return null;
+			return currentDate;
 		}
 	}
 
-	private boolean isString(Object obj) {
-		if (obj != null && obj instanceof Class) {
-			Class<?> c = (Class<?>) obj;
-			return c.getName().equals(String.class.getName());
-		}
-		return obj != null && obj instanceof String;
-	}
+	private class TableActionMouseListener implements MouseListener {
 
-	private boolean isDate(Object obj) {
-		if (obj != null && obj instanceof Class) {
-			Class<?> c = (Class<?>) obj;
-			return c.getName().equals(Date.class.getName());
-		}
-		return obj != null && obj instanceof Date;
-	}
+		private TableAction action;
+		private int column;
 
-	private boolean isDouble(Object obj) {
-		if (obj != null && obj instanceof Class) {
-			Class<?> c = (Class<?>) obj;
-			return c.getName().equals(Double.class.getName());
+		private TableActionMouseListener(TableAction action, int column) {
+			this.action = action;
+			this.column = column;
+			t.addMouseListener(this);
 		}
-		return obj != null && obj instanceof Double;
-	}
 
-	private boolean isInteger(Object obj) {
-		if (obj != null && obj instanceof Class) {
-			Class<?> c = (Class<?>) obj;
-			return c.getName().equals(Integer.class.getName());
+		@Override
+		public void mouseClicked(MouseEvent arg0) {
+			Log.debug(TableActionMouseListener.class, "mouseClicked()");
+			if (action != null && t.getSelectedColumn() == column) {
+				AObject selectedObject = tm.items.get(t.convertRowIndexToModel(t.getSelectedRow()));
+				Log.debug(TableActionMouseListener.class, "selectedObject=" + selectedObject.getUuid() + ", action=" + action);
+				action.setRowObject(selectedObject);
+				action.run();
+			}
 		}
-		return obj != null && obj instanceof Integer;
-	}
 
-	private boolean isList(Object obj) {
-		if (obj != null && obj instanceof Class) {
-			Class<?> c = (Class<?>) obj;
-			return c.getName().equals(List.class.getName());
+		@Override
+		public void mouseEntered(MouseEvent arg0) {
+			Log.debug(TableActionMouseListener.class, "mouseEntered()");
 		}
-		return obj != null && obj instanceof List;
-	}
 
-	private boolean isByteArray(Object obj) {
-		if (obj != null && obj instanceof Class) {
-			Class<?> c = (Class<?>) obj;
-			return c.isArray() && c.getComponentType() == byte.class;
+		@Override
+		public void mouseExited(MouseEvent arg0) {
+			Log.debug(TableActionMouseListener.class, "mouseExited()");
 		}
-		return obj != null && obj.getClass().isArray() && obj.getClass().getComponentType() == byte.class;
+
+		@Override
+		public void mousePressed(MouseEvent arg0) {
+			Log.debug(TableActionMouseListener.class, "mousePressed()");
+		}
+
+		@Override
+		public void mouseReleased(MouseEvent arg0) {
+			Log.debug(TableActionMouseListener.class, "mouseReleased()");
+		}
 	}
 }

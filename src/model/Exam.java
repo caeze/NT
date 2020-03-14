@@ -1,14 +1,9 @@
 package model;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import console.Log;
+import util.ListUtil;
 
 /**
  * Data class for an exam.
@@ -16,93 +11,106 @@ import console.Log;
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public class Exam {
+public class Exam extends AObject {
 
-	private UUID uuid;
-	private String name;
-	private GradeType gradeType;
-	private CharacteristicCurve characteristicCurve;
-	private List<Task> tasks;
-	private List<CompletedTask> completedTasks;
-	private String comment;
+	private UUID _001_uuid;
+	private String _002_name;
+	private GradeType _003_gradeType;
+	private CharacteristicCurve _004_characteristicCurve;
+	private List<Task> _005_tasks;
+	private List<CompletedTask> _006_completedTasks;
+	private String _007_comment;
+
+	public Exam() {
+	}
 
 	public Exam(UUID uuid, String name, GradeType gradeType, CharacteristicCurve characteristicCurve, List<Task> tasks, List<CompletedTask> completedTasks, String comment) {
-		this.uuid = uuid;
-		this.name = name;
-		this.gradeType = gradeType;
-		this.characteristicCurve = characteristicCurve;
-		this.tasks = tasks;
-		this.completedTasks = completedTasks;
-		this.comment = comment;
+		this._001_uuid = uuid;
+		this._002_name = name;
+		this._003_gradeType = gradeType;
+		this._004_characteristicCurve = characteristicCurve;
+		this._005_tasks = tasks;
+		this._006_completedTasks = completedTasks;
+		this._007_comment = comment;
+	}
+
+	public Exam(Exam other) {
+		this._001_uuid = other._001_uuid;
+		this._002_name = other._002_name;
+		this._003_gradeType = other._003_gradeType;
+		this._004_characteristicCurve = other._004_characteristicCurve;
+		this._005_tasks = new ListUtil<Task>().makeDeepCopy(other._005_tasks);
+		this._006_completedTasks = new ListUtil<CompletedTask>().makeDeepCopy(other._006_completedTasks);
+		this._007_comment = other._007_comment;
 	}
 
 	public UUID getUuid() {
-		return uuid;
+		return _001_uuid;
 	}
 
 	public void setUuid(UUID uuid) {
-		this.uuid = uuid;
+		this._001_uuid = uuid;
 	}
 
 	public String getName() {
-		return name;
+		return _002_name;
 	}
 
 	public void setName(String name) {
-		this.name = name;
+		this._002_name = name;
 	}
 
 	public GradeType getGradeType() {
-		return gradeType;
+		return _003_gradeType;
 	}
 
 	public void setGradeType(GradeType gradeType) {
-		this.gradeType = gradeType;
+		this._003_gradeType = gradeType;
 	}
 
 	public CharacteristicCurve getCharacteristicCurve() {
-		return characteristicCurve;
+		return _004_characteristicCurve;
 	}
 
 	public void setCharacteristicCurve(CharacteristicCurve characteristicCurve) {
-		this.characteristicCurve = characteristicCurve;
+		this._004_characteristicCurve = characteristicCurve;
 	}
 
 	public List<Task> getTasks() {
-		return tasks;
+		return _005_tasks;
 	}
 
 	public void setTasks(List<Task> tasks) {
-		this.tasks = tasks;
+		this._005_tasks = tasks;
 	}
 
 	public List<CompletedTask> getCompletedTasks() {
-		return completedTasks;
+		return _006_completedTasks;
 	}
 
 	public void setCompletedTasks(List<CompletedTask> completedTasks) {
-		this.completedTasks = completedTasks;
+		this._006_completedTasks = completedTasks;
 	}
 
 	public String getComment() {
-		return comment;
+		return _007_comment;
 	}
 
 	public void setComment(String comment) {
-		this.comment = comment;
+		this._007_comment = comment;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((characteristicCurve == null) ? 0 : characteristicCurve.hashCode());
-		result = prime * result + ((comment == null) ? 0 : comment.hashCode());
-		result = prime * result + ((completedTasks == null) ? 0 : completedTasks.hashCode());
-		result = prime * result + ((gradeType == null) ? 0 : gradeType.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((tasks == null) ? 0 : tasks.hashCode());
-		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+		result = prime * result + ((_004_characteristicCurve == null) ? 0 : _004_characteristicCurve.hashCode());
+		result = prime * result + ((_007_comment == null) ? 0 : _007_comment.hashCode());
+		result = prime * result + ((_006_completedTasks == null) ? 0 : _006_completedTasks.hashCode());
+		result = prime * result + ((_003_gradeType == null) ? 0 : _003_gradeType.hashCode());
+		result = prime * result + ((_002_name == null) ? 0 : _002_name.hashCode());
+		result = prime * result + ((_005_tasks == null) ? 0 : _005_tasks.hashCode());
+		result = prime * result + ((_001_uuid == null) ? 0 : _001_uuid.hashCode());
 		return result;
 	}
 
@@ -115,94 +123,46 @@ public class Exam {
 		if (getClass() != obj.getClass())
 			return false;
 		Exam other = (Exam) obj;
-		if (characteristicCurve == null) {
-			if (other.characteristicCurve != null)
+		if (_004_characteristicCurve == null) {
+			if (other._004_characteristicCurve != null)
 				return false;
-		} else if (!characteristicCurve.equals(other.characteristicCurve))
+		} else if (!_004_characteristicCurve.equals(other._004_characteristicCurve))
 			return false;
-		if (comment == null) {
-			if (other.comment != null)
+		if (_007_comment == null) {
+			if (other._007_comment != null)
 				return false;
-		} else if (!comment.equals(other.comment))
+		} else if (!_007_comment.equals(other._007_comment))
 			return false;
-		if (completedTasks == null) {
-			if (other.completedTasks != null)
+		if (_006_completedTasks == null) {
+			if (other._006_completedTasks != null)
 				return false;
-		} else if (!completedTasks.equals(other.completedTasks))
+		} else if (!_006_completedTasks.equals(other._006_completedTasks))
 			return false;
-		if (gradeType != other.gradeType)
-			return false;
-		if (name == null) {
-			if (other.name != null)
+		if (_003_gradeType == null) {
+			if (other._003_gradeType != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!_003_gradeType.equals(other._003_gradeType))
 			return false;
-		if (tasks == null) {
-			if (other.tasks != null)
+		if (_002_name == null) {
+			if (other._002_name != null)
 				return false;
-		} else if (!tasks.equals(other.tasks))
+		} else if (!_002_name.equals(other._002_name))
 			return false;
-		if (uuid == null) {
-			if (other.uuid != null)
+		if (_005_tasks == null) {
+			if (other._005_tasks != null)
 				return false;
-		} else if (!uuid.equals(other.uuid))
+		} else if (!_005_tasks.equals(other._005_tasks))
+			return false;
+		if (_001_uuid == null) {
+			if (other._001_uuid != null)
+				return false;
+		} else if (!_001_uuid.equals(other._001_uuid))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "Exam [uuid=" + uuid + ", name=" + name + ", gradeType=" + gradeType + ", characteristicCurve=" + characteristicCurve + ", tasks=" + tasks + ", completedTasks=" + completedTasks + ", comment=" + comment + "]";
-	}
-
-	public static String toJsonString(Exam exam) {
-		return toJsonObject(exam).toJSONString();
-	}
-
-	@SuppressWarnings("unchecked")
-	public static JSONObject toJsonObject(Exam exam) {
-		JSONObject objToReturn = new JSONObject();
-		objToReturn.put("uuid", exam.getUuid().toString());
-		objToReturn.put("name", exam.getName());
-		objToReturn.put("gradeType", GradeType.toJsonObject(exam.getGradeType()));
-		objToReturn.put("characteristicCurve", CharacteristicCurve.toJsonObject(exam.getCharacteristicCurve()));
-		JSONArray tasksJSONArray = new JSONArray();
-		for (Task t : exam.getTasks()) {
-			tasksJSONArray.add(Task.toJsonObject(t));
-		}
-		objToReturn.put("tasks", tasksJSONArray);
-		JSONArray completedTasksJSONArray = new JSONArray();
-		for (CompletedTask t : exam.getCompletedTasks()) {
-			completedTasksJSONArray.add(CompletedTask.toJsonObject(t));
-		}
-		objToReturn.put("completedTasks", completedTasksJSONArray);
-		objToReturn.put("comment", exam.getComment());
-		return objToReturn;
-	}
-
-	public static Exam fromJsonString(String jsonString) {
-		try {
-			return fromJsonObject((JSONObject) new JSONParser().parse(jsonString));
-		} catch (Exception e) {
-			Log.error(Exam.class, "Could not parse exam! " + e.getMessage());
-		}
-		return null;
-	}
-
-	public static Exam fromJsonObject(JSONObject jsonObject) throws Exception {
-		UUID uuid = UUID.fromString((String) jsonObject.get("uuid"));
-		String name = (String) jsonObject.get("name");
-		GradeType gradeType = GradeType.fromJsonObject((JSONObject) jsonObject.get("gradeType"));
-		CharacteristicCurve characteristicCurve = CharacteristicCurve.fromJsonObject((JSONObject) jsonObject.get("characteristicCurve"));
-		List<Task> tasks = new ArrayList<>();
-		for (Object taskJSONObject : (JSONArray) jsonObject.get("tasks")) {
-			tasks.add(Task.fromJsonObject((JSONObject) taskJSONObject));
-		}
-		List<CompletedTask> completedTasks = new ArrayList<>();
-		for (Object completedTaskJSONObject : (JSONArray) jsonObject.get("completedTasks")) {
-			completedTasks.add(CompletedTask.fromJsonObject((JSONObject) completedTaskJSONObject));
-		}
-		String comment = (String) jsonObject.get("comment");
-		return new Exam(uuid, name, gradeType, characteristicCurve, tasks, completedTasks, comment);
+		return "Exam [uuid=" + _001_uuid + ", name=" + _002_name + ", gradeType=" + _003_gradeType + ", characteristicCurve=" + _004_characteristicCurve + ", tasks=" + _005_tasks + ", completedTasks=" + _006_completedTasks + ", comment=" + _007_comment + "]";
 	}
 }

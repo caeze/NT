@@ -1,13 +1,11 @@
 package test;
 
-import java.util.Arrays;
-import java.util.Date;
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.UUID;
 
-import model.RelativePoint;
+import model.Model;
 import model.Room;
-import model.Student;
-import model.Table;
 
 /**
  * Test class for {@link model.Room}.
@@ -17,24 +15,29 @@ import model.Table;
  */
 public class RoomTest implements Testable {
 
-	public boolean roomTest() {
+	public boolean jsonTest() {
 		// prepare data
-		byte[] bytes = new byte[100];
-		for (int i = 0; i < bytes.length; i++) {
-			int index = (int) i / 3;
-			bytes[i] = (byte) index;
-		}
-		Student student1 = new Student(UUID.randomUUID(), "firstName", "lastName", new Date(), "email", "mobilePhone", "comment", bytes);
-		Student student2 = new Student(UUID.randomUUID(), "firstName", "lastName", new Date(), "email", "mobilePhone", "comment", bytes);
-		Table table1 = new Table(UUID.randomUUID(), new RelativePoint(1, 2), Arrays.asList(student1, student2), "comment");
-		Table table2 = new Table(UUID.randomUUID(), new RelativePoint(3, 4), Arrays.asList(student1, student2), "comment");
-		Room room = new Room(UUID.randomUUID(), "name", Arrays.asList(table1, table2), "comment");
-		
+		Model.getInstance().loadEmptyProject();
+		Room room = new Room(UUID.randomUUID(), "", new ArrayList<>(), "");
+
 		// execute tests
-		String roomData = Room.toJsonString(room);
-		Room room2 = Room.fromJsonString(roomData);
+		String roomData = room.toJsonString();
+		Room room2 = (Room) new Room().fillFromJsonString(roomData);
 
 		// return result
 		return room.equals(room2);
+	}
+
+	public boolean constructorsTest() {
+		// execute tests
+		boolean defaultConstructorFound = false;
+		boolean copyConstructorFound = false;
+		for (Constructor<?> c : Room.class.getDeclaredConstructors()) {
+			defaultConstructorFound |= c.toString().equals("public " + Room.class.getName() + "()");
+			copyConstructorFound |= c.toString().equals("public " + Room.class.getName() + "(" + Room.class.getName() + ")");
+		}
+
+		// return result
+		return defaultConstructorFound & copyConstructorFound;
 	}
 }

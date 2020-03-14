@@ -3,10 +3,11 @@ package view.util;
 import java.awt.Color;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.Date;
+
 import javax.swing.BorderFactory;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+
 import view.img.ImageStore;
 
 /**
@@ -29,6 +30,11 @@ public class ButtonUtil {
 		return createButton(onclick, icon, icon.getIconWidth(), icon.getIconHeight(), toolTip);
 	}
 
+	public static void updateButton(JButton button, String iconFileName, String text, int fontSize, Color foregroundColor, String toolTip) {
+		ImageIcon icon = ImageStore.createImageIconWithIconAndText(ImageStore.getImageIcon(iconFileName), text, fontSize, foregroundColor);
+		updateButton(button, icon, icon.getIconWidth(), icon.getIconHeight(), toolTip);
+	}
+
 	public static JButton createButton(String iconFileName, int width, int height) {
 		JButton b = createButton(null, iconFileName, width, height, null);
 		b.setEnabled(false);
@@ -45,10 +51,49 @@ public class ButtonUtil {
 		return createButton(onclick, ImageStore.getImageIcon(iconFileName), width, height, toolTip);
 	}
 
+	public static void updateButton(JButton button, ImageIcon icon, int width, int height, String toolTip) {
+		button.setIcon(ImageStore.getImageForButton(icon, width, height, 0, ALPHA_DEFAULT));
+		button.setDisabledIcon(ImageStore.getImageForButton(icon, width, height, 0, (float) (ALPHA_DEFAULT / 2.0)));
+		button.setBorder(BorderFactory.createEmptyBorder());
+		button.setContentAreaFilled(false);
+
+		button.addMouseListener(new MouseAdapter() {
+			private boolean mouseIsOverButton = false;
+
+			public void mouseEntered(MouseEvent evt) {
+				mouseIsOverButton = true;
+				button.setIcon(ImageStore.getImageForButton(icon, width, height, PERCENTAGE_TO_LIGHT_UP_HOVER, ALPHA_HOVER));
+				if (toolTip != null) {
+					button.setToolTipText(toolTip);
+				}
+			}
+
+			public void mouseExited(MouseEvent evt) {
+				mouseIsOverButton = false;
+				button.setIcon(ImageStore.getImageForButton(icon, width, height, PERCENTAGE_TO_LIGHT_UP_DEFAULT, ALPHA_DEFAULT));
+			}
+
+			public void mousePressed(MouseEvent evt) {
+				button.setIcon(ImageStore.getImageForButton(icon, width, height, PERCENTAGE_TO_LIGHT_UP_ON_CLICK, ALPHA_ON_CLICK));
+			}
+
+			public void mouseReleased(MouseEvent evt) {
+				if (mouseIsOverButton) {
+					button.setIcon(ImageStore.getImageForButton(icon, width, height, PERCENTAGE_TO_LIGHT_UP_HOVER, ALPHA_HOVER));
+				} else {
+					button.setIcon(ImageStore.getImageForButton(icon, width, height, PERCENTAGE_TO_LIGHT_UP_DEFAULT, ALPHA_DEFAULT));
+				}
+			}
+
+			public void mouseClicked(MouseEvent evt) {
+			}
+		});
+	}
+
 	public static JButton createButton(final Runnable onclick, ImageIcon icon, int width, int height, String toolTip) {
-		JButtonWithTimestamp buttonToReturn = new JButtonWithTimestamp(new Date(1000));
+		JButton buttonToReturn = new JButton();
 		buttonToReturn.setIcon(ImageStore.getImageForButton(icon, width, height, 0, ALPHA_DEFAULT));
-		buttonToReturn.setDisabledIcon(ImageStore.getImageForButton(icon, width, height, 0, ALPHA_DEFAULT));
+		buttonToReturn.setDisabledIcon(ImageStore.getImageForButton(icon, width, height, 0, (float) (ALPHA_DEFAULT / 2.0)));
 		buttonToReturn.setBorder(BorderFactory.createEmptyBorder());
 		buttonToReturn.setContentAreaFilled(false);
 		if (onclick == null) {
@@ -61,10 +106,8 @@ public class ButtonUtil {
 			public void mouseEntered(MouseEvent evt) {
 				mouseIsOverButton = true;
 				buttonToReturn.setIcon(ImageStore.getImageForButton(icon, width, height, PERCENTAGE_TO_LIGHT_UP_HOVER, ALPHA_HOVER));
-				Date now = new Date();
-				if (toolTip != null && getMsDifferenceBetweenDates(buttonToReturn.getTimestamp(), now) > 2500) {
-					ShowToast.showToastStatic(toolTip, 1000, evt.getXOnScreen(), evt.getYOnScreen() + 5, ColorStore.BACKGROUND_DIALOG, 12);
-					buttonToReturn.setTimestamp(now);
+				if (toolTip != null) {
+					buttonToReturn.setToolTipText(toolTip);
 				}
 			}
 
@@ -91,26 +134,5 @@ public class ButtonUtil {
 		});
 
 		return buttonToReturn;
-	}
-
-	private static class JButtonWithTimestamp extends JButton {
-
-		private Date timestamp;
-
-		private JButtonWithTimestamp(Date timestamp) {
-			this.timestamp = timestamp;
-		}
-
-		public Date getTimestamp() {
-			return timestamp;
-		}
-
-		public void setTimestamp(Date timestamp) {
-			this.timestamp = timestamp;
-		}
-	}
-
-	public static long getMsDifferenceBetweenDates(Date d1, Date d2) {
-		return Math.abs(d2.getTime() - d1.getTime());
 	}
 }

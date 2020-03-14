@@ -1,11 +1,10 @@
 package test;
 
-import java.util.Arrays;
-import java.util.Date;
+import java.lang.reflect.Constructor;
 import java.util.UUID;
 
+import model.Model;
 import model.RelativePoint;
-import model.Student;
 import model.Table;
 
 /**
@@ -16,22 +15,29 @@ import model.Table;
  */
 public class TableTest implements Testable {
 
-	public boolean tableTest() {
+	public boolean jsonTest() {
 		// prepare data
-		byte[] bytes = new byte[100];
-		for (int i = 0; i < bytes.length; i++) {
-			int index = (int) i / 3;
-			bytes[i] = (byte) index;
-		}
-		Student student1 = new Student(UUID.randomUUID(), "firstName", "lastName", new Date(), "email", "mobilePhone", "comment", bytes);
-		Student student2 = new Student(UUID.randomUUID(), "firstName", "lastName", new Date(), "email", "mobilePhone", "comment", bytes);
-		Table table = new Table(UUID.randomUUID(), new RelativePoint(1, 2), Arrays.asList(student1, student2), "comment");
+		Model.getInstance().loadEmptyProject();
+		Table table = new Table(UUID.randomUUID(), new RelativePoint(UUID.randomUUID(), 0.24, 0.43233657377), 2, "comment");
 
 		// execute tests
-		String tableData = Table.toJsonString(table);
-		Table table2 = Table.fromJsonString(tableData);
+		String tableData = table.toJsonString();
+		Table table2 = (Table) new Table().fillFromJsonString(tableData);
 
 		// return result
 		return table.equals(table2);
+	}
+
+	public boolean constructorsTest() {
+		// execute tests
+		boolean defaultConstructorFound = false;
+		boolean copyConstructorFound = false;
+		for (Constructor<?> c : Table.class.getDeclaredConstructors()) {
+			defaultConstructorFound |= c.toString().equals("public " + Table.class.getName() + "()");
+			copyConstructorFound |= c.toString().equals("public " + Table.class.getName() + "(" + Table.class.getName() + ")");
+		}
+
+		// return result
+		return defaultConstructorFound & copyConstructorFound;
 	}
 }

@@ -1,11 +1,7 @@
 package model;
 
+import java.util.List;
 import java.util.UUID;
-
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import console.Log;
 
 /**
  * Data class for a course.
@@ -13,82 +9,118 @@ import console.Log;
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public class Course {
+public class Course extends AObject {
 
-	private UUID uuid;
-	private String subject; // Physik
-	private String term; // WiSe 2021, SoSe 2022, etc.
-	private String grade; // 7
-	private String letter; // a
-	private String comment;
+	private UUID _001_uuid;
+	private String _002_subject;
+	private String _003_grade;
+	private String _004_letter;
+	private LazyAObject<Room> _005_room;
+	private List<LazyAObject<Student>> _006_students;
+	private List<StudentOnTableMapping> _007_studentOnTableMapping;
+	private String _008_comment;
 
-	public Course(UUID uuid, String subject, String term, String grade, String letter, String comment) {
-		this.uuid = uuid;
-		this.subject = subject;
-		this.term = term;
-		this.grade = grade;
-		this.letter = letter;
-		this.comment = comment;
+	public Course() {
+	}
+
+	public Course(UUID uuid, String subject, String grade, String letter, LazyAObject<Room> room, List<LazyAObject<Student>> students, List<StudentOnTableMapping> studentOnTableMapping, String comment) {
+		this._001_uuid = uuid;
+		this._002_subject = subject;
+		this._003_grade = grade;
+		this._004_letter = letter;
+		this._005_room = room;
+		this._006_students = students;
+		this._007_studentOnTableMapping = studentOnTableMapping;
+		this._008_comment = comment;
+	}
+
+	public Course(Course other) {
+		this._001_uuid = other._001_uuid;
+		this._002_subject = other._002_subject;
+		this._003_grade = other._003_grade;
+		this._004_letter = other._004_letter;
+		this._005_room = other._005_room;
+		this._006_students = other._006_students;
+		this._007_studentOnTableMapping = other._007_studentOnTableMapping;
+		this._008_comment = other._008_comment;
 	}
 
 	public UUID getUuid() {
-		return uuid;
+		return _001_uuid;
 	}
 
 	public void setUuid(UUID uuid) {
-		this.uuid = uuid;
+		this._001_uuid = uuid;
 	}
 
 	public String getSubject() {
-		return subject;
+		return _002_subject;
 	}
 
 	public void setSubject(String subject) {
-		this.subject = subject;
-	}
-
-	public String getTerm() {
-		return term;
-	}
-
-	public void setTerm(String term) {
-		this.term = term;
+		this._002_subject = subject;
 	}
 
 	public String getGrade() {
-		return grade;
+		return _003_grade;
 	}
 
 	public void setGrade(String grade) {
-		this.grade = grade;
+		this._003_grade = grade;
 	}
 
 	public String getLetter() {
-		return letter;
+		return _004_letter;
 	}
 
 	public void setLetter(String letter) {
-		this.letter = letter;
+		this._004_letter = letter;
+	}
+
+	public LazyAObject<Room> getRoom() {
+		return _005_room;
+	}
+
+	public void setRoom(LazyAObject<Room> room) {
+		this._005_room = room;
+	}
+
+	public List<LazyAObject<Student>> getStudents() {
+		return _006_students;
+	}
+
+	public void setStudents(List<LazyAObject<Student>> students) {
+		this._006_students = students;
+	}
+
+	public List<StudentOnTableMapping> getStudentOnTableMapping() {
+		return _007_studentOnTableMapping;
+	}
+
+	public void setStudentOnTableMapping(List<StudentOnTableMapping> studentOnTableMapping) {
+		this._007_studentOnTableMapping = studentOnTableMapping;
 	}
 
 	public String getComment() {
-		return comment;
+		return _008_comment;
 	}
 
 	public void setComment(String comment) {
-		this.comment = comment;
+		this._008_comment = comment;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((grade == null) ? 0 : grade.hashCode());
-		result = prime * result + ((letter == null) ? 0 : letter.hashCode());
-		result = prime * result + ((subject == null) ? 0 : subject.hashCode());
-		result = prime * result + ((term == null) ? 0 : term.hashCode());
-		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
-		result = prime * result + ((comment == null) ? 0 : comment.hashCode());
+		result = prime * result + ((_008_comment == null) ? 0 : _008_comment.hashCode());
+		result = prime * result + ((_003_grade == null) ? 0 : _003_grade.hashCode());
+		result = prime * result + ((_004_letter == null) ? 0 : _004_letter.hashCode());
+		result = prime * result + ((_005_room == null) ? 0 : _005_room.hashCode());
+		result = prime * result + ((_007_studentOnTableMapping == null) ? 0 : _007_studentOnTableMapping.hashCode());
+		result = prime * result + ((_006_students == null) ? 0 : _006_students.hashCode());
+		result = prime * result + ((_002_subject == null) ? 0 : _002_subject.hashCode());
+		result = prime * result + ((_001_uuid == null) ? 0 : _001_uuid.hashCode());
 		return result;
 	}
 
@@ -101,76 +133,51 @@ public class Course {
 		if (getClass() != obj.getClass())
 			return false;
 		Course other = (Course) obj;
-		if (grade == null) {
-			if (other.grade != null)
+		if (_008_comment == null) {
+			if (other._008_comment != null)
 				return false;
-		} else if (!grade.equals(other.grade))
+		} else if (!_008_comment.equals(other._008_comment))
 			return false;
-		if (letter == null) {
-			if (other.letter != null)
+		if (_003_grade == null) {
+			if (other._003_grade != null)
 				return false;
-		} else if (!letter.equals(other.letter))
+		} else if (!_003_grade.equals(other._003_grade))
 			return false;
-		if (subject == null) {
-			if (other.subject != null)
+		if (_004_letter == null) {
+			if (other._004_letter != null)
 				return false;
-		} else if (!subject.equals(other.subject))
+		} else if (!_004_letter.equals(other._004_letter))
 			return false;
-		if (term == null) {
-			if (other.term != null)
+		if (_005_room == null) {
+			if (other._005_room != null)
 				return false;
-		} else if (!term.equals(other.term))
+		} else if (!_005_room.equals(other._005_room))
 			return false;
-		if (uuid == null) {
-			if (other.uuid != null)
+		if (_007_studentOnTableMapping == null) {
+			if (other._007_studentOnTableMapping != null)
 				return false;
-		} else if (!uuid.equals(other.uuid))
+		} else if (!_007_studentOnTableMapping.equals(other._007_studentOnTableMapping))
 			return false;
-		if (comment == null) {
-			if (other.comment != null)
+		if (_006_students == null) {
+			if (other._006_students != null)
 				return false;
-		} else if (!comment.equals(other.comment))
+		} else if (!_006_students.equals(other._006_students))
+			return false;
+		if (_002_subject == null) {
+			if (other._002_subject != null)
+				return false;
+		} else if (!_002_subject.equals(other._002_subject))
+			return false;
+		if (_001_uuid == null) {
+			if (other._001_uuid != null)
+				return false;
+		} else if (!_001_uuid.equals(other._001_uuid))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "Course [uuid=" + uuid + ", subject=" + subject + ", term=" + term + ", grade=" + grade + ", letter=" + letter + ", comment=" + comment + "]";
-	}
-
-	public static String toJsonString(Course course) {
-		return toJsonObject(course).toJSONString();
-	}
-
-	@SuppressWarnings("unchecked")
-	public static JSONObject toJsonObject(Course course) {
-		JSONObject objToReturn = new JSONObject();
-		objToReturn.put("uuid", course.getUuid().toString());
-		objToReturn.put("subject", course.getSubject());
-		objToReturn.put("term", course.getTerm());
-		objToReturn.put("grade", course.getGrade());
-		objToReturn.put("letter", course.getLetter());
-		objToReturn.put("comment", course.getComment());
-		return objToReturn;
-	}
-
-	public static Course fromJsonString(String jsonString) {
-		try {
-			return fromJsonObject((JSONObject) new JSONParser().parse(jsonString));
-		} catch (Exception e) {
-			Log.error(Course.class, "Could not parse course! " + e.getMessage());
-		}
-		return null;
-	}
-
-	public static Course fromJsonObject(JSONObject jsonObject) {
-		UUID uuid = UUID.fromString((String) jsonObject.get("uuid"));
-		String subject = (String) jsonObject.get("subject");
-		String term = (String) jsonObject.get("term");
-		String grade = (String) jsonObject.get("grade");
-		String letter = (String) jsonObject.get("letter");
-		String comment = (String) jsonObject.get("comment");
-		return new Course(uuid, subject, term, grade, letter, comment);
+		return "Course [uuid=" + _001_uuid + ", subject=" + _002_subject + ", grade=" + _003_grade + ", letter=" + _004_letter + ", room=" + _005_room + ", students=" + _006_students + ", studentOnTableMapping=" + _007_studentOnTableMapping + ", comment=" + _008_comment + "]";
 	}
 }

@@ -30,8 +30,12 @@ import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
 import console.Log;
+import control.Control;
+import model.LazyAObject;
+import model.Model;
 import model.RelativePoint;
 import model.Student;
+import model.StudentOnTableMapping;
 import model.Table;
 import nt.NT;
 import preferences.Preferences;
@@ -52,46 +56,61 @@ import view.util.ShowToast;
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public class ClassEditor implements IViewComponent {
+public class RoomEditor implements IViewComponent {
+
+	public enum Action {
+		EDIT_ROOM, EDIT_STUDENTS, EDIT_GRADES
+	}
 
 	private static final double PADDING = 0.1;
 	private static final int HIGHLIGHTING_MARGIN = 4;
 	private static final ListUtil<Table> LU = new ListUtil<>();
 	private static final Font FONT = new Font("Century Schoolbook", 1, 11);
 	private static final int STUDENT_IMAGES_SPACING = 10;
+	private static final String UNKNOWN_STUDENT_IMAGE = "person.png";
 
-	private static ClassEditor instance;
-
-	private ClassEditorBoard editor = new ClassEditorBoard();
+	private RoomEditorBoard editor = new RoomEditorBoard();
 	private List<Table> tables = new ArrayList<>();
+	private List<StudentOnTableMapping> studentsOnTables = new ArrayList<>();
 	private Table highlightedTable = null;
-	private Student highlightedStudent = null;
+	private int highlightedStudentIndex = -1;
 	private Map<Student, Date> studentsToLastTooltipShown = new HashMap<>();
 
-	private RelativePoint northWest = new RelativePoint(0.0, 0.0);
-	private RelativePoint southWest = new RelativePoint(0.0, 1.0);
-	private RelativePoint northEast = new RelativePoint(1.0, 0.0);
-	private RelativePoint southEast = new RelativePoint(1.0, 1.0);
+	private StudentsList sl;
+	private Action action;
 
-	private ClassEditor() {
-		// hide constructor, singleton pattern
+	private RelativePoint northWest = new RelativePoint(UUID.randomUUID(), 0.0, 0.0);
+	private RelativePoint southWest = new RelativePoint(UUID.randomUUID(), 0.0, 1.0);
+	private RelativePoint northEast = new RelativePoint(UUID.randomUUID(), 1.0, 0.0);
+	private RelativePoint southEast = new RelativePoint(UUID.randomUUID(), 1.0, 1.0);
+
+	public RoomEditor(Action action, List<Table> tables) {
+		this(action, tables, new ArrayList<>());
 	}
 
-	/**
-	 * Get an instance, singleton pattern.
-	 *
-	 * @return an instance
-	 */
-	public static ClassEditor getInstance() {
-		if (instance == null) {
-			instance = new ClassEditor();
-		}
-		return instance;
+	public RoomEditor(Action action, List<Table> tables, List<StudentOnTableMapping> studentsOnTables) {
+		this.action = action;
+		this.tables = new ListUtil<Table>().makeDeepCopy(tables);
+		this.studentsOnTables = new ListUtil<StudentOnTableMapping>().makeDeepCopy(studentsOnTables);
 	}
 
 	@Override
 	public List<JButton> getButtonsLeft() {
 		List<JButton> retList = new ArrayList<>();
+		JButton backButton = ButtonUtil.createButton(new Runnable() {
+			@Override
+			public void run() {
+				View.getInstance().popViewComponent(IViewComponent.Result.CANCEL);
+			}
+		}, "back.png", 40, 40, L10n.getString("back"));
+		retList.add(backButton);
+		JButton doneButton = ButtonUtil.createButton(new Runnable() {
+			@Override
+			public void run() {
+				View.getInstance().popViewComponent(IViewComponent.Result.SAVE);
+			}
+		}, "done.png", 40, 40, L10n.getString("done"));
+		retList.add(doneButton);
 		return retList;
 	}
 
@@ -107,7 +126,7 @@ public class ClassEditor implements IViewComponent {
 						Desktop.getDesktop().browse(new URI(s.substring(0, s.lastIndexOf("/") + 1)));
 					}
 				} catch (Exception e) {
-					Log.error(ClassEditor.class, e.getMessage());
+					Log.error(RoomEditor.class, e.getMessage());
 				}
 			}
 		}, "logo.png", 48, 48);
@@ -119,11 +138,19 @@ public class ClassEditor implements IViewComponent {
 	@Override
 	public List<JButton> getButtonsRight() {
 		List<JButton> retList = new ArrayList<>();
+		retList.add(ButtonUtil.createButton("empty.png", 40, 40));
+		JButton exitButton = ButtonUtil.createButton(new Runnable() {
+			@Override
+			public void run() {
+				Control.getInstance().exitProgram();
+			}
+		}, "clear.png", 40, 40, L10n.getString("exitNT"));
+		retList.add(exitButton);
 		return retList;
 	}
 
 	@Override
-	public JComponent initializeViewComponent() {
+	public JComponent initializeViewComponent(boolean firstInitialization) {
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		GridBagConstraints constraints = new GridBagConstraints();
 
@@ -144,18 +171,65 @@ public class ClassEditor implements IViewComponent {
 
 	@Override
 	public void uninitializeViewComponent() {
-		instance = null;
+	}
+
+	@Override
+	public void resultFromLastViewComponent(IViewComponent component, Result result) {
+		if (component.equals(sl)) {
+			if (Result.SAVE.equals(result)) {
+				Student selectedStudent = sl.getSelectedStudent();
+				Table currentTable = getTableOfStudent(selectedStudent);
+				studentsOnTables.add(new StudentOnTableMapping(UUID.randomUUID(), selectedStudent.getUuid(), currentTable.getUuid()));
+			} else if (Result.CANCEL.equals(result)) {
+			}
+		}
+	}
+
+	public List<Table> getTables() {
+		return tables;
+	}
+
+	private Table getTableOfStudent(Student student) {
+		for (StudentOnTableMapping sotm : studentsOnTables) {
+			if (sotm.getStudentUuid().equals(student.getUuid())) {
+				return Model.getInstance().expandLazyAObject(new LazyAObject<Table>(sotm.getTableUuid()));
+			}
+		}
+		return null;
+	}
+
+	private List<Student> getStudentsOnTable(Table t) {
+		List<Student> retList = new ArrayList<>();
+		for (StudentOnTableMapping sotm : studentsOnTables) {
+			if (sotm.getTableUuid().equals(t.getUuid())) {
+				retList.add(Model.getInstance().expandLazyAObject(new LazyAObject<Student>(sotm.getStudentUuid())));
+			}
+		}
+		return retList;
+	}
+
+	private int getPositionInMapping(Student s, Table t) {
+		int i = 0;
+		for (StudentOnTableMapping sotm : studentsOnTables) {
+			if (sotm.getTableUuid().equals(t.getUuid())) {
+				if (sotm.getStudentUuid().equals(s.getUuid())) {
+					return i;
+				}
+				i++;
+			}
+		}
+		return i;
 	}
 
 	private enum Mode {
 		NONE, ADD_TABLE, MOVE_TABLE, HIGHLIGHT_STUDENT;
 	}
 
-	private class ClassEditorBoard extends JPanel implements ComponentListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
+	private class RoomEditorBoard extends JPanel implements ComponentListener, MouseListener, MouseMotionListener, MouseWheelListener, KeyListener {
 
 		private Mode mode = Mode.ADD_TABLE;
 
-		private ClassEditorBoard() {
+		private RoomEditorBoard() {
 			addComponentListener(this);
 			addMouseListener(this);
 			addMouseMotionListener(this);
@@ -199,19 +273,40 @@ public class ClassEditor implements IViewComponent {
 				g.setColor(ColorStore.TABLE_COLOR);
 				g.fillRect(x, y, t.getWidth(STUDENT_IMAGES_SPACING), t.getHeight());
 				g.setColor(ColorStore.CHAIR_COLOR);
-				for (int i = 0; i < t.getStudents().size(); i++) {
-					BufferedImage img = ImageStore.createRGBImage(t.getStudents().get(i).getImage(), NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT);
-					g.drawImage(img, x + i * (STUDENT_IMAGES_SPACING + NT.STUDENT_IMAGE_WIDTH), y - STUDENT_IMAGES_SPACING - NT.STUDENT_IMAGE_HEIGHT, NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT, this);
-				}
-				if (highlightedStudent != null && t.getStudents().contains(highlightedStudent)) {
-					int i = t.getStudents().indexOf(highlightedStudent);
-					y = y - STUDENT_IMAGES_SPACING - NT.STUDENT_IMAGE_HEIGHT;
-					int spacing = STUDENT_IMAGES_SPACING * i;
-					if (i == 0) {
-						spacing = 0;
+				if (action.equals(Action.EDIT_STUDENTS)) {
+					for (StudentOnTableMapping sotm : studentsOnTables) {
+						if (sotm.getTableUuid().equals(t.getUuid())) {
+							Student s = Model.getInstance().expandLazyAObject(new LazyAObject<Student>(sotm.getTableUuid()));
+							BufferedImage img = ImageStore.createRGBImage(s.getImage(), NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT);
+							int i = getPositionInMapping(s, t);
+							g.drawImage(img, x + i * (STUDENT_IMAGES_SPACING + NT.STUDENT_IMAGE_WIDTH), y - STUDENT_IMAGES_SPACING - NT.STUDENT_IMAGE_HEIGHT, NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT, this);
+						}
 					}
-					x = x + (i * NT.STUDENT_IMAGE_WIDTH + spacing);
-					g.drawRect(x - HIGHLIGHTING_MARGIN, y - HIGHLIGHTING_MARGIN, (int) (NT.STUDENT_IMAGE_WIDTH + 2 * HIGHLIGHTING_MARGIN - FloatingPointUtil.FLOATING_POINT_DELTA), (int) (NT.STUDENT_IMAGE_HEIGHT + 2 * HIGHLIGHTING_MARGIN - FloatingPointUtil.FLOATING_POINT_DELTA));
+					if (t.equals(highlightedTable) && highlightedStudentIndex != -1) {
+						int i = highlightedStudentIndex;
+						y = y - STUDENT_IMAGES_SPACING - NT.STUDENT_IMAGE_HEIGHT;
+						int spacing = STUDENT_IMAGES_SPACING * i;
+						if (i == 0) {
+							spacing = 0;
+						}
+						x = x + (i * NT.STUDENT_IMAGE_WIDTH + spacing);
+						g.drawRect(x - HIGHLIGHTING_MARGIN, y - HIGHLIGHTING_MARGIN, (int) (NT.STUDENT_IMAGE_WIDTH + 2 * HIGHLIGHTING_MARGIN - FloatingPointUtil.FLOATING_POINT_DELTA), (int) (NT.STUDENT_IMAGE_HEIGHT + 2 * HIGHLIGHTING_MARGIN - FloatingPointUtil.FLOATING_POINT_DELTA));
+					}
+				} else if (action.equals(Action.EDIT_ROOM)) {
+					for (int i = 0; i < t.getNumberOfPlaces(); i++) {
+						BufferedImage img = ImageStore.fromImageIcon(ImageStore.getScaledImage(ImageStore.getImageIcon(UNKNOWN_STUDENT_IMAGE), NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT));
+						g.drawImage(img, x + i * (STUDENT_IMAGES_SPACING + NT.STUDENT_IMAGE_WIDTH), y - STUDENT_IMAGES_SPACING - NT.STUDENT_IMAGE_HEIGHT, NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT, this);
+					}
+					if (t.equals(highlightedTable) && highlightedStudentIndex != -1) {
+						int i = highlightedStudentIndex;
+						y = y - STUDENT_IMAGES_SPACING - NT.STUDENT_IMAGE_HEIGHT;
+						int spacing = STUDENT_IMAGES_SPACING * i;
+						if (i == 0) {
+							spacing = 0;
+						}
+						x = x + (i * NT.STUDENT_IMAGE_WIDTH + spacing);
+						g.drawRect(x - HIGHLIGHTING_MARGIN, y - HIGHLIGHTING_MARGIN, (int) (NT.STUDENT_IMAGE_WIDTH + 2 * HIGHLIGHTING_MARGIN - FloatingPointUtil.FLOATING_POINT_DELTA), (int) (NT.STUDENT_IMAGE_HEIGHT + 2 * HIGHLIGHTING_MARGIN - FloatingPointUtil.FLOATING_POINT_DELTA));
+					}
 				}
 			}
 
@@ -225,36 +320,51 @@ public class ClassEditor implements IViewComponent {
 				Graphics2DUtil.deactivateAntialiasing((Graphics2D) g);
 			}
 
-			if (highlightedTable != null) {
+			if (highlightedTable != null && highlightedStudentIndex == -1) {
 				int x = RelativePoint.relativeToAbsoluteX(highlightedTable.getPosition().getX(), getWidth(), (int) (PADDING * getWidth()));
 				int y = RelativePoint.relativeToAbsoluteY(highlightedTable.getPosition().getY(), getHeight(), (int) (PADDING * getHeight()));
 				g.drawRect(x - HIGHLIGHTING_MARGIN, y - HIGHLIGHTING_MARGIN, (int) (highlightedTable.getWidth(STUDENT_IMAGES_SPACING) + 2 * HIGHLIGHTING_MARGIN - FloatingPointUtil.FLOATING_POINT_DELTA), (int) (highlightedTable.getHeight() + 2 * HIGHLIGHTING_MARGIN - FloatingPointUtil.FLOATING_POINT_DELTA));
 			}
+
+			g.setColor(ColorStore.CHAIR_COLOR);
+			int blackboardX1 = RelativePoint.relativeToAbsoluteX(0.4, getWidth(), (int) (PADDING * getWidth()));
+			int blackboardY1 = RelativePoint.relativeToAbsoluteY(1.0 - PADDING / 2.0, getHeight(), (int) (PADDING * getHeight()));
+			int blackboardX2 = RelativePoint.relativeToAbsoluteX(0.6, getWidth(), (int) (PADDING * getWidth()));
+			int blackboardY2 = RelativePoint.relativeToAbsoluteY(1.0 - PADDING / 20.0, getHeight(), (int) (PADDING * getHeight()));
+			g.fillRect(blackboardX1, blackboardY1, blackboardX2 - blackboardX1, blackboardY2 - blackboardY1);
+			g.setColor(ColorStore.WHITE);
+			Graphics2DUtil.activateAntialiasing((Graphics2D) g);
+			String text = L10n.getString("blackboard");
+			int adv = g.getFontMetrics(FONT).stringWidth(text);
+			int textX = getWidth() / 2 - adv / 2;
+			int textY = RelativePoint.relativeToAbsoluteY(1.0 - PADDING / 5.5, getHeight(), (int) (PADDING * getHeight()));
+			g.drawString(text, textX, textY);
+			Graphics2DUtil.deactivateAntialiasing((Graphics2D) g);
 		}
 
 		@Override
 		public void componentResized(ComponentEvent e) {
-			Log.debug(ClassEditor.class, "componentResized, Mode: " + mode);
+			Log.debug(RoomEditor.class, "componentResized, Mode: " + mode);
 		}
 
 		@Override
 		public void componentMoved(ComponentEvent e) {
-			Log.debug(ClassEditor.class, "componentMoved, Mode: " + mode);
+			Log.debug(RoomEditor.class, "componentMoved, Mode: " + mode);
 		}
 
 		@Override
 		public void componentShown(ComponentEvent e) {
-			Log.debug(ClassEditor.class, "componentShown, Mode: " + mode);
+			Log.debug(RoomEditor.class, "componentShown, Mode: " + mode);
 		}
 
 		@Override
 		public void componentHidden(ComponentEvent e) {
-			Log.debug(ClassEditor.class, "componentHidden, Mode: " + mode);
+			Log.debug(RoomEditor.class, "componentHidden, Mode: " + mode);
 		}
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			Log.debug(ClassEditor.class, "mouseClicked, Mode: " + mode);
+			Log.debug(RoomEditor.class, "mouseClicked, Mode: " + mode);
 
 			PopupMenuUtil.getInstance().killAllPopupMenus();
 
@@ -265,31 +375,31 @@ public class ClassEditor implements IViewComponent {
 			} else if (SwingUtilities.isRightMouseButton(e)) {
 				if (Mode.HIGHLIGHT_STUDENT.equals(mode)) {
 					Map<String, Runnable> elements = new HashMap<>();
-					elements.put(L10n.getString("chooseStudent"), new Runnable() {
-						@Override
-						public void run() {
-							System.out.println("chooseStudent");
-							repaint();
-						}
-					});
-					elements.put(L10n.getString("remove"), new Runnable() {
-						@Override
-						public void run() {
-							for (Table t : tables) {
-								if (t.getStudents().contains(highlightedStudent)) {
-									t.getStudents().remove(highlightedStudent);
-								}
+					if (action.equals(Action.EDIT_STUDENTS)) {
+						elements.put(L10n.getString("chooseStudent"), new Runnable() {
+							@Override
+							public void run() {
+								sl = new StudentsList(true);
+								View.getInstance().pushViewComponent(sl);
+								repaint();
 							}
-							Table tableToRemove = null;
-							for (Table t : tables) {
-								if (t.getStudents().isEmpty()) {
-									tableToRemove = t;
+						});
+					} else {
+						elements.put(L10n.getString("remove"), new Runnable() {
+							@Override
+							public void run() {
+								int noOfPlaces = highlightedTable.getNumberOfPlaces();
+								noOfPlaces--;
+								highlightedTable.setNumberOfPlaces(noOfPlaces);
+								if (noOfPlaces < 1) {
+									removeTable(highlightedTable);
 								}
+								highlightedStudentIndex = -1;
+								highlightedTable = null;
+								repaint();
 							}
-							tables.remove(tableToRemove);
-							repaint();
-						}
-					});
+						});
+					}
 					PopupMenuUtil.getInstance().showPopupMenu(e.getXOnScreen(), e.getYOnScreen(), elements);
 				} else if (Mode.MOVE_TABLE.equals(mode)) {
 					Map<String, Runnable> elements = new HashMap<>();
@@ -297,7 +407,10 @@ public class ClassEditor implements IViewComponent {
 						@Override
 						public void run() {
 							highlightedTable = getTableToHighlight(e.getX(), e.getY());
-							highlightedTable.getStudents().add(Student.getDummyStudent());
+							if (highlightedTable == null) {
+								getStudentIndexToHighlight(e.getX(), e.getY());
+							}
+							highlightedTable.setNumberOfPlaces(highlightedTable.getNumberOfPlaces() + 1);
 							repaint();
 						}
 					});
@@ -305,7 +418,11 @@ public class ClassEditor implements IViewComponent {
 						@Override
 						public void run() {
 							highlightedTable = getTableToHighlight(e.getX(), e.getY());
-							tables.remove(highlightedTable);
+							if (highlightedTable == null) {
+								getStudentIndexToHighlight(e.getX(), e.getY());
+							}
+							removeTable(highlightedTable);
+							highlightedTable = null;
 							repaint();
 						}
 					});
@@ -317,29 +434,29 @@ public class ClassEditor implements IViewComponent {
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-			Log.debug(ClassEditor.class, "mousePressed, Mode: " + mode);
+			Log.debug(RoomEditor.class, "mousePressed, Mode: " + mode);
 
 			requestFocusInWindow();
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-			Log.debug(ClassEditor.class, "mouseReleased, Mode: " + mode);
+			Log.debug(RoomEditor.class, "mouseReleased, Mode: " + mode);
 		}
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			Log.debug(ClassEditor.class, "mouseEntered, Mode: " + mode);
+			Log.debug(RoomEditor.class, "mouseEntered, Mode: " + mode);
 		}
 
 		@Override
 		public void mouseExited(MouseEvent e) {
-			Log.debug(ClassEditor.class, "mouseExited, Mode: " + mode);
+			Log.debug(RoomEditor.class, "mouseExited, Mode: " + mode);
 		}
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			Log.debug(ClassEditor.class, "mouseDragged, Mode: " + mode);
+			Log.debug(RoomEditor.class, "mouseDragged, Mode: " + mode);
 
 			if (Mode.MOVE_TABLE.equals(mode)) {
 				double x = RelativePoint.absoluteToRelativeX(e.getX(), getWidth(), (int) (PADDING * getWidth()));
@@ -347,7 +464,7 @@ public class ClassEditor implements IViewComponent {
 				if (x > 1.0 || x < 0.0 || y > 1.0 || y < 0.0) {
 					return;
 				}
-				highlightedTable.setPosition(new RelativePoint(x, y));
+				highlightedTable.setPosition(new RelativePoint(UUID.randomUUID(), x, y));
 			}
 			repaint();
 		}
@@ -355,12 +472,14 @@ public class ClassEditor implements IViewComponent {
 		@Override
 		public void mouseMoved(MouseEvent e) {
 			highlightedTable = getTableToHighlight(e.getX(), e.getY());
-			highlightedStudent = getStudentToHighlight(e.getX(), e.getY());
-			if (highlightedTable != null) {
-				mode = Mode.MOVE_TABLE;
-			} else if (highlightedStudent != null) {
+			highlightedStudentIndex = getStudentIndexToHighlight(e.getX(), e.getY());
+			if (highlightedStudentIndex != -1) {
 				mode = Mode.HIGHLIGHT_STUDENT;
-				showStudentInfo(e.getXOnScreen(), e.getYOnScreen(), highlightedStudent);
+				if (!getStudentsOnTable(highlightedTable).isEmpty()) {
+					showStudentInfo(e.getXOnScreen(), e.getYOnScreen(), getStudentsOnTable(highlightedTable).get(highlightedStudentIndex));
+				}
+			} else if (highlightedTable != null) {
+				mode = Mode.MOVE_TABLE;
 			} else {
 				mode = Mode.ADD_TABLE;
 			}
@@ -369,17 +488,17 @@ public class ClassEditor implements IViewComponent {
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
-			Log.debug(ClassEditor.class, "mouseWheelMoved, Mode: " + mode);
+			Log.debug(RoomEditor.class, "mouseWheelMoved, Mode: " + mode);
 		}
 
 		@Override
 		public void keyPressed(KeyEvent e) {
-			Log.debug(ClassEditor.class, "keyPressed, Mode: " + mode);
+			Log.debug(RoomEditor.class, "keyPressed, Mode: " + mode);
 		}
 
 		@Override
 		public void keyReleased(KeyEvent e) {
-			Log.debug(ClassEditor.class, "keyReleased, Mode: " + mode);
+			Log.debug(RoomEditor.class, "keyReleased, Mode: " + mode);
 			int key = e.getKeyCode();
 			if (key == KeyEvent.VK_DELETE) {
 				removeTable(highlightedTable);
@@ -390,7 +509,7 @@ public class ClassEditor implements IViewComponent {
 
 		@Override
 		public void keyTyped(KeyEvent e) {
-			Log.debug(ClassEditor.class, "keyTyped, Mode: " + mode);
+			Log.debug(RoomEditor.class, "keyTyped, Mode: " + mode);
 		}
 
 		@Override
@@ -411,13 +530,8 @@ public class ClassEditor implements IViewComponent {
 				return null;
 			}
 
-			List<Student> s = new ArrayList<>();
-			s.add(Student.getDummyStudent());
-			s.add(Student.getDummyStudent());
-			Table table = new Table(UUID.randomUUID(), new RelativePoint(x, y), s, "");
-
+			Table table = new Table(UUID.randomUUID(), new RelativePoint(UUID.randomUUID(), x, y), 2, "");
 			tables.add(table);
-
 			return table;
 		}
 
@@ -432,10 +546,9 @@ public class ClassEditor implements IViewComponent {
 			return null;
 		}
 
-		private Student getStudentToHighlight(int xClicked, int yClicked) {
+		private int getStudentIndexToHighlight(int xClicked, int yClicked) {
 			for (Table t : tables) {
-				for (int i = 0; i < t.getStudents().size(); i++) {
-					Student s = t.getStudents().get(i);
+				for (int i = 0; i < t.getNumberOfPlaces(); i++) {
 					int x = RelativePoint.relativeToAbsoluteX(t.getPosition().getX(), getWidth(), (int) (PADDING * getWidth()));
 					int y = RelativePoint.relativeToAbsoluteY(t.getPosition().getY(), getHeight(), (int) (PADDING * getHeight()));
 
@@ -447,17 +560,18 @@ public class ClassEditor implements IViewComponent {
 					x = x + (i * NT.STUDENT_IMAGE_WIDTH + spacing);
 
 					if (FloatingPointUtil.isInBetween(xClicked, x, x + NT.STUDENT_IMAGE_WIDTH) && FloatingPointUtil.isInBetween(yClicked, y, y + NT.STUDENT_IMAGE_HEIGHT)) {
-						return s;
+						highlightedTable = t;
+						return i;
 					}
 				}
 			}
-			return null;
+			return -1;
 		}
 
 		private void showStudentInfo(int x, int y, Student student) {
 			Date now = new Date();
 			Date studentTooltipLastSeen = studentsToLastTooltipShown.get(student);
-			if (studentsToLastTooltipShown.get(student) != null && ButtonUtil.getMsDifferenceBetweenDates(studentTooltipLastSeen, now) < 5000) {
+			if (studentsToLastTooltipShown.get(student) != null && ShowToast.getMsDifferenceBetweenDates(studentTooltipLastSeen, now) < 5000) {
 				return;
 			}
 			studentsToLastTooltipShown.put(student, new Date());

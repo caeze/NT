@@ -1,8 +1,9 @@
 package view.l10n;
 
-import console.Log;
 import java.io.InputStream;
 import java.util.Properties;
+
+import console.Log;
 import preferences.Preferences;
 
 /**

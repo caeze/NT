@@ -1,6 +1,5 @@
 package view.img;
 
-import console.Log;
 import java.awt.AlphaComposite;
 import java.awt.Color;
 import java.awt.Font;
@@ -19,8 +18,11 @@ import java.awt.image.DataBufferByte;
 import java.awt.image.Raster;
 import java.awt.image.RescaleOp;
 import java.awt.image.WritableRaster;
+import java.io.File;
 
 import javax.swing.ImageIcon;
+
+import console.Log;
 
 /**
  * Image Store for the application.
@@ -31,11 +33,21 @@ import javax.swing.ImageIcon;
 public class ImageStore {
 
 	public static ImageIcon getImageIcon(String name) {
-		ImageIcon iconToReturn = null;
 		try {
 			if (name != null && !name.isEmpty() && ImageStore.class.getResource(name) != null) {
-				iconToReturn = new ImageIcon(ImageStore.class.getResource(name));
-				return iconToReturn;
+				return new ImageIcon(ImageStore.class.getResource(name));
+			}
+		} catch (Exception e) {
+			Log.error(ImageStore.class, e.getMessage());
+		}
+
+		return createResourceNotFoundImage();
+	}
+
+	public static ImageIcon getImageIcon(File f) {
+		try {
+			if (f != null && f.exists()) {
+				return new ImageIcon(f.getAbsolutePath());
 			}
 		} catch (Exception e) {
 			Log.error(ImageStore.class, e.getMessage());
@@ -163,7 +175,7 @@ public class ImageStore {
 		return new ImageIcon(createRGBImage(imageBytes, 16, 16));
 	}
 
-	private static BufferedImage fromImageIcon(ImageIcon icon) {
+	public static BufferedImage fromImageIcon(ImageIcon icon) {
 		BufferedImage bi = new BufferedImage(icon.getIconWidth(), icon.getIconHeight(), BufferedImage.TYPE_3BYTE_BGR);
 		Graphics g = bi.createGraphics();
 		icon.paintIcon(null, g, 0, 0);

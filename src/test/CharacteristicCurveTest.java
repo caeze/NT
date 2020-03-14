@@ -1,5 +1,6 @@
 package test;
 
+import java.lang.reflect.Constructor;
 import java.util.Arrays;
 import java.util.UUID;
 
@@ -14,15 +15,28 @@ import model.RelativePoint;
  */
 public class CharacteristicCurveTest implements Testable {
 
-	public boolean caracteristicCurveTest() {
+	public boolean jsonTest() {
 		// prepare data
-		CharacteristicCurve characteristicCurve = new CharacteristicCurve(UUID.randomUUID(), Arrays.asList(new RelativePoint(1, 2), new RelativePoint(3, 4)), "comment");
-		
+		CharacteristicCurve characteristicCurve = new CharacteristicCurve(UUID.randomUUID(), Arrays.asList(new RelativePoint(UUID.randomUUID(), 1, 2), new RelativePoint(UUID.randomUUID(), 3, 4)), "comment");
+
 		// execute tests
-		String characteristicCurveData = CharacteristicCurve.toJsonString(characteristicCurve);
-		CharacteristicCurve characteristicCurve2 = CharacteristicCurve.fromJsonString(characteristicCurveData);
+		String characteristicCurveData = characteristicCurve.toJsonString();
+		CharacteristicCurve characteristicCurve2 = (CharacteristicCurve) new CharacteristicCurve().fillFromJsonString(characteristicCurveData);
 
 		// return result
 		return characteristicCurve.equals(characteristicCurve2);
+	}
+
+	public boolean constructorsTest() {
+		// execute tests
+		boolean defaultConstructorFound = false;
+		boolean copyConstructorFound = false;
+		for (Constructor<?> c : CharacteristicCurve.class.getDeclaredConstructors()) {
+			defaultConstructorFound |= c.toString().equals("public " + CharacteristicCurve.class.getName() + "()");
+			copyConstructorFound |= c.toString().equals("public " + CharacteristicCurve.class.getName() + "(" + CharacteristicCurve.class.getName() + ")");
+		}
+
+		// return result
+		return defaultConstructorFound & copyConstructorFound;
 	}
 }

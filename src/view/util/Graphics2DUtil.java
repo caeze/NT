@@ -11,7 +11,7 @@ import java.awt.RenderingHints;
  * @date 2020/02/04
  */
 public class Graphics2DUtil {
-	
+
 	public static void activateAntialiasing(Graphics2D g) {
 		((Graphics2D) g).setStroke(new BasicStroke(2));
 		RenderingHints rh = new RenderingHints(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);

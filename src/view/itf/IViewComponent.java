@@ -1,6 +1,7 @@
 package view.itf;
 
 import java.util.List;
+
 import javax.swing.JButton;
 import javax.swing.JComponent;
 
@@ -8,17 +9,23 @@ import javax.swing.JComponent;
  * Interface for view components.
  *
  * @author Clemens Strobel
- * @date 04.03.2018
+ * @date 2020/02/04
  */
 public interface IViewComponent {
 
-    public List<JButton> getButtonsLeft();
+	public enum Result {
+		NONE, SAVE, CANCEL;
+	}
 
-    public List<JComponent> getComponentsCenter();
+	public List<JButton> getButtonsLeft();
 
-    public List<JButton> getButtonsRight();
+	public List<JComponent> getComponentsCenter();
 
-    public JComponent initializeViewComponent();
+	public List<JButton> getButtonsRight();
 
-    public void uninitializeViewComponent();
+	public JComponent initializeViewComponent(boolean firstInitialization);
+
+	public void uninitializeViewComponent();
+
+	public void resultFromLastViewComponent(IViewComponent component, Result result);
 }

@@ -1,14 +1,9 @@
 package model;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import console.Log;
+import util.ListUtil;
 
 /**
  * Data class for a characteristic curve.
@@ -16,49 +11,58 @@ import console.Log;
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public class CharacteristicCurve {
+public class CharacteristicCurve extends AObject {
 
-	private UUID uuid;
-	private List<RelativePoint> points;
-	private String comment;
+	private UUID _001_uuid;
+	private List<RelativePoint> _002_points;
+	private String _003_comment;
+
+	public CharacteristicCurve() {
+	}
 
 	public CharacteristicCurve(UUID uuid, List<RelativePoint> points, String comment) {
-		this.uuid = uuid;
-		this.points = points;
-		this.comment = comment;
+		this._001_uuid = uuid;
+		this._002_points = points;
+		this._003_comment = comment;
+	}
+
+	public CharacteristicCurve(CharacteristicCurve other) {
+		this._001_uuid = other._001_uuid;
+		this._002_points = new ListUtil<RelativePoint>().makeDeepCopy(other._002_points);
+		this._003_comment = other._003_comment;
 	}
 
 	public UUID getUuid() {
-		return uuid;
+		return _001_uuid;
 	}
 
 	public void setUuid(UUID uuid) {
-		this.uuid = uuid;
+		this._001_uuid = uuid;
 	}
 
 	public List<RelativePoint> getPoints() {
-		return points;
+		return _002_points;
 	}
 
 	public void setPoints(List<RelativePoint> points) {
-		this.points = points;
+		this._002_points = points;
 	}
 
 	public String getComment() {
-		return comment;
+		return _003_comment;
 	}
 
 	public void setComment(String comment) {
-		this.comment = comment;
+		this._003_comment = comment;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((comment == null) ? 0 : comment.hashCode());
-		result = prime * result + ((points == null) ? 0 : points.hashCode());
-		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+		result = prime * result + ((_003_comment == null) ? 0 : _003_comment.hashCode());
+		result = prime * result + ((_002_points == null) ? 0 : _002_points.hashCode());
+		result = prime * result + ((_001_uuid == null) ? 0 : _001_uuid.hashCode());
 		return result;
 	}
 
@@ -71,62 +75,26 @@ public class CharacteristicCurve {
 		if (getClass() != obj.getClass())
 			return false;
 		CharacteristicCurve other = (CharacteristicCurve) obj;
-		if (comment == null) {
-			if (other.comment != null)
+		if (_003_comment == null) {
+			if (other._003_comment != null)
 				return false;
-		} else if (!comment.equals(other.comment))
+		} else if (!_003_comment.equals(other._003_comment))
 			return false;
-		if (points == null) {
-			if (other.points != null)
+		if (_002_points == null) {
+			if (other._002_points != null)
 				return false;
-		} else if (!points.equals(other.points))
+		} else if (!_002_points.equals(other._002_points))
 			return false;
-		if (uuid == null) {
-			if (other.uuid != null)
+		if (_001_uuid == null) {
+			if (other._001_uuid != null)
 				return false;
-		} else if (!uuid.equals(other.uuid))
+		} else if (!_001_uuid.equals(other._001_uuid))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "CharacteristicCurve [uuid=" + uuid + ", points=" + points + ", comment=" + comment + "]";
-	}
-
-	public static String toJsonString(CharacteristicCurve characteristicCurve) {
-		return toJsonObject(characteristicCurve).toJSONString();
-	}
-
-	@SuppressWarnings("unchecked")
-	public static JSONObject toJsonObject(CharacteristicCurve characteristicCurve) {
-		JSONObject objToReturn = new JSONObject();
-		objToReturn.put("uuid", characteristicCurve.getUuid().toString());
-		JSONArray pointsJSONArray = new JSONArray();
-		for (RelativePoint p : characteristicCurve.getPoints()) {
-			pointsJSONArray.add(RelativePoint.toJsonObject(p));
-		}
-		objToReturn.put("points", pointsJSONArray);
-		objToReturn.put("comment", characteristicCurve.getComment());
-		return objToReturn;
-	}
-
-	public static CharacteristicCurve fromJsonString(String jsonString) {
-		try {
-			return fromJsonObject((JSONObject) new JSONParser().parse(jsonString));
-		} catch (Exception e) {
-			Log.error(CharacteristicCurve.class, "Could not parse course! " + e.getMessage());
-		}
-		return null;
-	}
-
-	public static CharacteristicCurve fromJsonObject(JSONObject jsonObject) throws Exception {
-		UUID uuid = UUID.fromString((String) jsonObject.get("uuid"));
-		List<RelativePoint> points = new ArrayList<>();
-		for (Object tableJSONObject : (JSONArray) jsonObject.get("points")) {
-			points.add(RelativePoint.fromJsonObject((JSONObject) tableJSONObject));
-		}
-		String comment = (String) jsonObject.get("comment");
-		return new CharacteristicCurve(uuid, points, comment);
+		return "CharacteristicCurve [uuid=" + _001_uuid + ", points=" + _002_points + ", comment=" + _003_comment + "]";
 	}
 }

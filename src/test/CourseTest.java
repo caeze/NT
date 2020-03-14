@@ -1,8 +1,13 @@
 package test;
 
+import java.lang.reflect.Constructor;
+import java.util.ArrayList;
 import java.util.UUID;
 
 import model.Course;
+import model.MissingAObject;
+import model.Model;
+import model.Room;
 
 /**
  * Test class for {@link model.Course}.
@@ -12,15 +17,29 @@ import model.Course;
  */
 public class CourseTest implements Testable {
 
-	public boolean courseTest() {
+	public boolean jsonTest() {
 		// prepare data
-		Course course = new Course(UUID.randomUUID(), "subject", "term", "grade", "letter", "comment");
+		Model.getInstance().loadEmptyProject();
+		Course course = new Course(UUID.randomUUID(), "", "", "", new MissingAObject<Room>(), new ArrayList<>(), new ArrayList<>(), "");
 
 		// execute tests
-		String courseData = Course.toJsonString(course);
-		Course course2 = Course.fromJsonString(courseData);
+		String courseData = course.toJsonString();
+		Course course2 = (Course) new Course().fillFromJsonString(courseData);
 
 		// return result
 		return course.equals(course2);
+	}
+
+	public boolean constructorsTest() {
+		// execute tests
+		boolean defaultConstructorFound = false;
+		boolean copyConstructorFound = false;
+		for (Constructor<?> c : Course.class.getDeclaredConstructors()) {
+			defaultConstructorFound |= c.toString().equals("public " + Course.class.getName() + "()");
+			copyConstructorFound |= c.toString().equals("public " + Course.class.getName() + "(" + Course.class.getName() + ")");
+		}
+
+		// return result
+		return defaultConstructorFound & copyConstructorFound;
 	}
 }

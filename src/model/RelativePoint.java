@@ -1,9 +1,6 @@
 package model;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import console.Log;
+import java.util.UUID;
 
 /**
  * Data class for a point.
@@ -11,45 +8,60 @@ import console.Log;
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public class RelativePoint {
+public class RelativePoint extends AObject {
 
-	private double x;
-	private double y;
+	private UUID _001_uuid;
+	private double _002_x;
+	private double _003_y;
 
-	public RelativePoint(double x, double y) {
-		this.x = x;
-		this.y = y;
+	public RelativePoint() {
+	}
+
+	public RelativePoint(UUID uuid, double x, double y) {
+		this._001_uuid = uuid;
+		this._002_x = x;
+		this._003_y = y;
 	}
 
 	public RelativePoint(RelativePoint other) {
-		this.x = other.x;
-		this.y = other.y;
+		this._001_uuid = other._001_uuid;
+		this._002_x = other._002_x;
+		this._003_y = other._003_y;
+	}
+
+	public UUID getUuid() {
+		return _001_uuid;
+	}
+
+	public void setUuid(UUID uuid) {
+		this._001_uuid = uuid;
 	}
 
 	public double getX() {
-		return x;
+		return _002_x;
 	}
 
 	public void setX(double x) {
-		this.x = x;
+		this._002_x = x;
 	}
 
 	public double getY() {
-		return y;
+		return _003_y;
 	}
 
 	public void setY(double y) {
-		this.y = y;
+		this._003_y = y;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
+		result = prime * result + ((_001_uuid == null) ? 0 : _001_uuid.hashCode());
 		long temp;
-		temp = Double.doubleToLongBits(x);
+		temp = Double.doubleToLongBits(_002_x);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		temp = Double.doubleToLongBits(y);
+		temp = Double.doubleToLongBits(_003_y);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
 		return result;
 	}
@@ -63,43 +75,21 @@ public class RelativePoint {
 		if (getClass() != obj.getClass())
 			return false;
 		RelativePoint other = (RelativePoint) obj;
-		if (Double.doubleToLongBits(x) != Double.doubleToLongBits(other.x))
+		if (_001_uuid == null) {
+			if (other._001_uuid != null)
+				return false;
+		} else if (!_001_uuid.equals(other._001_uuid))
 			return false;
-		if (Double.doubleToLongBits(y) != Double.doubleToLongBits(other.y))
+		if (Double.doubleToLongBits(_002_x) != Double.doubleToLongBits(other._002_x))
+			return false;
+		if (Double.doubleToLongBits(_003_y) != Double.doubleToLongBits(other._003_y))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "Point [x=" + x + ", y=" + y + "]";
-	}
-
-	public static String toJsonString(RelativePoint point) {
-		return toJsonObject(point).toJSONString();
-	}
-
-	@SuppressWarnings("unchecked")
-	public static JSONObject toJsonObject(RelativePoint point) {
-		JSONObject objToReturn = new JSONObject();
-		objToReturn.put("x", point.getX());
-		objToReturn.put("y", point.getY());
-		return objToReturn;
-	}
-
-	public static RelativePoint fromJsonString(String jsonString) {
-		try {
-			return fromJsonObject((JSONObject) new JSONParser().parse(jsonString));
-		} catch (Exception e) {
-			Log.error(Table.class, "Could not parse point! " + e.getMessage());
-		}
-		return null;
-	}
-
-	public static RelativePoint fromJsonObject(JSONObject jsonObject) throws Exception {
-		double x = (Double) jsonObject.get("x");
-		double y = (Double) jsonObject.get("y");
-		return new RelativePoint(x, y);
+		return "RelativePoint [uuid=" + _001_uuid + ", x=" + _002_x + ", y=" + _003_y + "]";
 	}
 
 	public static double absoluteToRelativeX(int x, int width, int padding) {

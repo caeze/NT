@@ -1,16 +1,8 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import console.Log;
 import nt.NT;
-import util.ListUtil;
 
 /**
  * Data class for a table.
@@ -18,64 +10,66 @@ import util.ListUtil;
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public class Table {
+public class Table extends AObject {
 
-	private UUID uuid;
-	private RelativePoint position;
-	private List<Student> students;
-	private String comment;
+	private UUID _001_uuid;
+	private RelativePoint _002_position;
+	private int _003_numberOfPlaces;
+	private String _004_comment;
 
-	public Table(UUID uuid, RelativePoint position, List<Student> students, String comment) {
-		this.uuid = uuid;
-		this.position = position;
-		this.students = students;
-		this.comment = comment;
+	public Table() {
+	}
+
+	public Table(UUID uuid, RelativePoint position, int students, String comment) {
+		this._001_uuid = uuid;
+		this._002_position = position;
+		this._003_numberOfPlaces = students;
+		this._004_comment = comment;
 	}
 
 	public Table(Table other) {
-		this.uuid = other.getUuid();
-		this.position = new RelativePoint(other.getPosition());
-		ListUtil<Student> LU = new ListUtil<>();
-		this.students = LU.makeDeepCopy(other.getStudents());
-		this.comment = other.getComment();
+		this._001_uuid = other._001_uuid;
+		this._002_position = new RelativePoint(other._002_position);
+		this._003_numberOfPlaces = other._003_numberOfPlaces;
+		this._004_comment = other._004_comment;
 	}
 
 	public UUID getUuid() {
-		return uuid;
+		return _001_uuid;
 	}
 
 	public void setUuid(UUID uuid) {
-		this.uuid = uuid;
+		this._001_uuid = uuid;
 	}
 
 	public RelativePoint getPosition() {
-		return position;
+		return _002_position;
 	}
 
 	public void setPosition(RelativePoint position) {
-		this.position = position;
+		this._002_position = position;
 	}
 
-	public List<Student> getStudents() {
-		return students;
+	public int getNumberOfPlaces() {
+		return _003_numberOfPlaces;
 	}
 
-	public void setStudents(List<Student> students) {
-		this.students = students;
+	public void setNumberOfPlaces(int numberOfPlaces) {
+		this._003_numberOfPlaces = numberOfPlaces;
 	}
 
 	public String getComment() {
-		return comment;
+		return _004_comment;
 	}
 
 	public void setComment(String comment) {
-		this.comment = comment;
+		this._004_comment = comment;
 	}
-	
+
 	public int getWidth(int imagesSpacing) {
-		return getStudents().size() * (imagesSpacing + NT.STUDENT_IMAGE_WIDTH) - imagesSpacing;
+		return _003_numberOfPlaces * (imagesSpacing + NT.STUDENT_IMAGE_WIDTH) - imagesSpacing;
 	}
-	
+
 	public int getHeight() {
 		return NT.STUDENT_IMAGE_HEIGHT;
 	}
@@ -84,10 +78,10 @@ public class Table {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((comment == null) ? 0 : comment.hashCode());
-		result = prime * result + ((students == null) ? 0 : students.hashCode());
-		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
-		result = prime * result + ((position == null) ? 0 : position.hashCode());
+		result = prime * result + ((_001_uuid == null) ? 0 : _001_uuid.hashCode());
+		result = prime * result + ((_002_position == null) ? 0 : _002_position.hashCode());
+		result = prime * result + _003_numberOfPlaces;
+		result = prime * result + ((_004_comment == null) ? 0 : _004_comment.hashCode());
 		return result;
 	}
 
@@ -100,69 +94,28 @@ public class Table {
 		if (getClass() != obj.getClass())
 			return false;
 		Table other = (Table) obj;
-		if (comment == null) {
-			if (other.comment != null)
+		if (_001_uuid == null) {
+			if (other._001_uuid != null)
 				return false;
-		} else if (!comment.equals(other.comment))
+		} else if (!_001_uuid.equals(other._001_uuid))
 			return false;
-		if (students == null) {
-			if (other.students != null)
+		if (_002_position == null) {
+			if (other._002_position != null)
 				return false;
-		} else if (!students.equals(other.students))
+		} else if (!_002_position.equals(other._002_position))
 			return false;
-		if (uuid == null) {
-			if (other.uuid != null)
-				return false;
-		} else if (!uuid.equals(other.uuid))
+		if (_003_numberOfPlaces != other._003_numberOfPlaces)
 			return false;
-		if (position == null) {
-			if (other.position != null)
+		if (_004_comment == null) {
+			if (other._004_comment != null)
 				return false;
-		} else if (!position.equals(other.position))
+		} else if (!_004_comment.equals(other._004_comment))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "Table [uuid=" + uuid + ", position=" + position + ", students=" + students + ", comment=" + comment + "]";
-	}
-
-	public static String toJsonString(Table table) {
-		return toJsonObject(table).toJSONString();
-	}
-
-	@SuppressWarnings("unchecked")
-	public static JSONObject toJsonObject(Table table) {
-		JSONObject objToReturn = new JSONObject();
-		objToReturn.put("uuid", table.getUuid().toString());
-		objToReturn.put("position", table.getPosition());
-		JSONArray studentsJSONArray = new JSONArray();
-		for (Student s : table.getStudents()) {
-			studentsJSONArray.add(Student.toJsonObject(s));
-		}
-		objToReturn.put("students", studentsJSONArray);
-		objToReturn.put("comment", table.getComment());
-		return objToReturn;
-	}
-
-	public static Table fromJsonString(String jsonString) {
-		try {
-			return fromJsonObject((JSONObject) new JSONParser().parse(jsonString));
-		} catch (Exception e) {
-			Log.error(Table.class, "Could not parse table! " + e.getMessage());
-		}
-		return null;
-	}
-
-	public static Table fromJsonObject(JSONObject jsonObject) throws Exception {
-		UUID uuid = UUID.fromString((String) jsonObject.get("uuid"));
-		RelativePoint position = RelativePoint.fromJsonObject((JSONObject) jsonObject.get("position"));
-		List<Student> students = new ArrayList<>();
-		for (Object studentJSONObject : (JSONArray) jsonObject.get("students")) {
-			students.add(Student.fromJsonObject((JSONObject) studentJSONObject));
-		}
-		String comment = (String) jsonObject.get("comment");
-		return new Table(uuid, position, students, comment);
+		return "Table [uuid=" + _001_uuid + ", position=" + _002_position + ", numberOfPlaces=" + _003_numberOfPlaces + ", comment=" + _004_comment + "]";
 	}
 }

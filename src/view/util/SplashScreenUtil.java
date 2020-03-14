@@ -1,6 +1,5 @@
 package view.util;
 
-import console.Log;
 import java.awt.Color;
 import java.awt.Dialog;
 
@@ -9,6 +8,7 @@ import javax.swing.JLabel;
 import javax.swing.JWindow;
 import javax.swing.SwingUtilities;
 
+import console.Log;
 import view.img.ImageStore;
 
 /**

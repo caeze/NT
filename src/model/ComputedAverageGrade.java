@@ -11,15 +11,14 @@ import java.util.UUID;
  */
 public class ComputedAverageGrade extends AGrade {
 
-	public ComputedAverageGrade(UUID uuid, Course course, Student student, Date date, double grade, String name, String comment) {
+	public ComputedAverageGrade() {
+	}
+
+	public ComputedAverageGrade(UUID uuid, LazyAObject<Course> course, LazyAObject<Student> student, Date date, double grade, String name, String comment) {
 		super(uuid, course, student, date, grade, name, comment);
 	}
 
-	public static String toJsonString(ComputedAverageGrade grade) {
-		return AGrade.toJsonString(grade);
-	}
-
-	public static ComputedAverageGrade fromJsonString(String jsonString) {
-		return (ComputedAverageGrade) AGrade.fromJsonString(jsonString);
+	public ComputedAverageGrade(ComputedAverageGrade other) {
+		super(other);
 	}
 }

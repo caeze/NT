@@ -3,106 +3,113 @@ package model;
 import java.util.Date;
 import java.util.UUID;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import console.Log;
-import nt.NT;
-
 /**
  * Data class for a grade.
  *
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public abstract class AGrade {
-	protected UUID uuid;
-	protected Course course;
-	protected Student student;
-	protected Date date;
-	protected double grade;
-	protected String name;
-	protected String comment;
+public abstract class AGrade extends AObject {
+	protected UUID _001_uuid;
+	protected LazyAObject<Course> _002_course;
+	protected LazyAObject<Student> _003_student;
+	protected Date _004_date;
+	protected double _005_grade;
+	protected String _006_name;
+	protected String _007_comment;
 
-	public AGrade(UUID uuid, Course course, Student student, Date date, double grade, String name, String comment) {
-		this.uuid = uuid;
-		this.course = course;
-		this.student = student;
-		this.date = date;
-		this.grade = grade;
-		this.name = name;
-		this.comment = comment;
+	public AGrade() {
+	}
+
+	public AGrade(UUID uuid, LazyAObject<Course> course, LazyAObject<Student> student, Date date, double grade, String name, String comment) {
+		this._001_uuid = uuid;
+		this._002_course = course;
+		this._003_student = student;
+		this._004_date = date;
+		this._005_grade = grade;
+		this._006_name = name;
+		this._007_comment = comment;
+	}
+
+	public AGrade(AGrade other) {
+		this._001_uuid = other._001_uuid;
+		this._002_course = other._002_course;
+		this._003_student = other._003_student;
+		this._004_date = other._004_date;
+		this._005_grade = other._005_grade;
+		this._006_name = other._006_name;
+		this._007_comment = other._007_comment;
 	}
 
 	public UUID getUuid() {
-		return uuid;
+		return _001_uuid;
 	}
 
 	public void setUuid(UUID uuid) {
-		this.uuid = uuid;
+		this._001_uuid = uuid;
 	}
 
-	public Course getCourse() {
-		return course;
+	public LazyAObject<Course> getCourse() {
+		return _002_course;
 	}
 
-	public void setCourse(Course course) {
-		this.course = course;
+	public void setCourse(LazyAObject<Course> course) {
+		this._002_course = course;
 	}
 
-	public Student getStudent() {
-		return student;
+	public LazyAObject<Student> getStudent() {
+		return _003_student;
 	}
 
-	public void setStudent(Student student) {
-		this.student = student;
+	public void setStudent(LazyAObject<Student> student) {
+		this._003_student = student;
 	}
 
 	public Date getDate() {
-		return date;
+		return _004_date;
 	}
 
 	public void setDate(Date date) {
-		this.date = date;
+		this._004_date = date;
 	}
 
 	public double getGrade() {
-		return grade;
+		return _005_grade;
 	}
 
 	public void setGrade(double grade) {
-		this.grade = grade;
+		this._005_grade = grade;
 	}
 
 	public String getName() {
-		return name;
+		return _006_name;
 	}
 
 	public void setName(String name) {
-		this.name = name;
+		this._006_name = name;
 	}
 
 	public String getComment() {
-		return comment;
+		return _007_comment;
 	}
 
 	public void setComment(String comment) {
-		this.comment = comment;
+		this._007_comment = comment;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((comment == null) ? 0 : comment.hashCode());
-		result = prime * result + ((course == null) ? 0 : course.hashCode());
-		result = prime * result + ((date == null) ? 0 : date.hashCode());
+		result = prime * result + ((_007_comment == null) ? 0 : _007_comment.hashCode());
+		result = prime * result + ((_002_course == null) ? 0 : _002_course.hashCode());
+		result = prime * result + ((_004_date == null) ? 0 : _004_date.hashCode());
 		long temp;
-		temp = Double.doubleToLongBits(grade);
+		temp = Double.doubleToLongBits(_005_grade);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((student == null) ? 0 : student.hashCode());
-		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+		result = prime * result + ((_006_name == null) ? 0 : _006_name.hashCode());
+		result = prime * result + ((_003_student == null) ? 0 : _003_student.hashCode());
+		result = prime * result + ((_001_uuid == null) ? 0 : _001_uuid.hashCode());
 		return result;
 	}
 
@@ -115,82 +122,43 @@ public abstract class AGrade {
 		if (getClass() != obj.getClass())
 			return false;
 		AGrade other = (AGrade) obj;
-		if (comment == null) {
-			if (other.comment != null)
+		if (_007_comment == null) {
+			if (other._007_comment != null)
 				return false;
-		} else if (!comment.equals(other.comment))
+		} else if (!_007_comment.equals(other._007_comment))
 			return false;
-		if (course == null) {
-			if (other.course != null)
+		if (_002_course == null) {
+			if (other._002_course != null)
 				return false;
-		} else if (!course.equals(other.course))
+		} else if (!_002_course.equals(other._002_course))
 			return false;
-		if (date == null) {
-			if (other.date != null)
+		if (_004_date == null) {
+			if (other._004_date != null)
 				return false;
-		} else if (!date.equals(other.date))
+		} else if (!_004_date.equals(other._004_date))
 			return false;
-		if (Double.doubleToLongBits(grade) != Double.doubleToLongBits(other.grade))
+		if (Double.doubleToLongBits(_005_grade) != Double.doubleToLongBits(other._005_grade))
 			return false;
-		if (name == null) {
-			if (other.name != null)
+		if (_006_name == null) {
+			if (other._006_name != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!_006_name.equals(other._006_name))
 			return false;
-		if (student == null) {
-			if (other.student != null)
+		if (_003_student == null) {
+			if (other._003_student != null)
 				return false;
-		} else if (!student.equals(other.student))
+		} else if (!_003_student.equals(other._003_student))
 			return false;
-		if (uuid == null) {
-			if (other.uuid != null)
+		if (_001_uuid == null) {
+			if (other._001_uuid != null)
 				return false;
-		} else if (!uuid.equals(other.uuid))
+		} else if (!_001_uuid.equals(other._001_uuid))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return getClass().getSimpleName() + " [uuid=" + uuid + ", course=" + course + ", student=" + student + ", date=" + date + ", grade=" + grade + ", name=" + name + ", comment=" + comment + "]";
-	}
-
-	@SuppressWarnings("unchecked")
-	protected static String toJsonString(AGrade grade) {
-		JSONObject objToReturn = new JSONObject();
-		objToReturn.put("uuid", grade.getUuid().toString());
-		objToReturn.put("type", grade.getClass().getSimpleName());
-		objToReturn.put("course", Course.toJsonObject(grade.getCourse()));
-		objToReturn.put("student", Student.toJsonObject(grade.getStudent()));
-		objToReturn.put("date", NT.SDF_FOR_PERSISTING.format(grade.getDate()));
-		objToReturn.put("grade", grade.getGrade());
-		objToReturn.put("name", grade.getName());
-		objToReturn.put("comment", grade.getComment());
-		return objToReturn.toJSONString();
-	}
-
-	protected static AGrade fromJsonString(String jsonString) {
-		try {
-			JSONParser parser = new JSONParser();
-			JSONObject jsonObject = (JSONObject) parser.parse(jsonString);
-			UUID uuid = UUID.fromString((String) jsonObject.get("uuid"));
-			String type = (String) jsonObject.get("type");
-			Course course = Course.fromJsonObject((JSONObject) jsonObject.get("course"));
-			Student student = Student.fromJsonObject((JSONObject) jsonObject.get("student"));
-			Date date = NT.SDF_FOR_PERSISTING.parse((String) jsonObject.get("date"));
-			double grade = (Double) jsonObject.get("grade");
-			String name = (String) jsonObject.get("name");
-			String comment = (String) jsonObject.get("comment");
-			if (ComputedAverageGrade.class.getSimpleName().equals(type)) {
-				return new ComputedAverageGrade(uuid, course, student, date, grade, name, comment);
-			} else if (ManuallyAdaptedGrade.class.getSimpleName().equals(type)) {
-				return new ManuallyAdaptedGrade(uuid, course, student, date, grade, name, comment);
-			} else if (NormalGrade.class.getSimpleName().equals(type)) {
-				return new NormalGrade(uuid, course, student, date, grade, name, comment);
-			}
-		} catch (Exception e) {
-			Log.error(Course.class, "Could not parse grade! " + e.getMessage());
-		}
-		return null;
+		return getClass().getSimpleName() + " [uuid=" + _001_uuid + ", course=" + _002_course + ", student=" + _003_student + ", date=" + _004_date + ", grade=" + _005_grade + ", name=" + _006_name + ", comment=" + _007_comment + "]";
 	}
 }

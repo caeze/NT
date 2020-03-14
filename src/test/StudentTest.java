@@ -1,9 +1,13 @@
 package test;
 
+import java.lang.reflect.Constructor;
 import java.util.Date;
 import java.util.UUID;
 
+import model.Model;
 import model.Student;
+import nt.NT;
+import view.img.ImageStore;
 
 /**
  * Test class for {@link model.Student}.
@@ -13,20 +17,30 @@ import model.Student;
  */
 public class StudentTest implements Testable {
 
-	public boolean studentTest() {
+	public boolean jsonTest() {
 		// prepare data
-		byte[] bytes = new byte[100];
-		for (int i = 0; i < bytes.length; i++) {
-			int index = (int) i / 3;
-			bytes[i] = (byte) index;
-		}
+		Model.getInstance().loadEmptyProject();
+		byte[] bytes = ImageStore.getBytesFromImage(ImageStore.getScaledImage(ImageStore.getImageIcon(""), NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT));
 		Student student = new Student(UUID.randomUUID(), "firstName", "lastName", new Date(), "email", "mobilePhone", "comment", bytes);
 
 		// execute tests
-		String studentData = Student.toJsonString(student);
-		Student student2 = Student.fromJsonString(studentData);
+		String studentData = student.toJsonString();
+		Student student2 = (Student) new Student().fillFromJsonString(studentData);
 
 		// return result
 		return student.equals(student2);
+	}
+
+	public boolean constructorsTest() {
+		// execute tests
+		boolean defaultConstructorFound = false;
+		boolean copyConstructorFound = false;
+		for (Constructor<?> c : Student.class.getDeclaredConstructors()) {
+			defaultConstructorFound |= c.toString().equals("public " + Student.class.getName() + "()");
+			copyConstructorFound |= c.toString().equals("public " + Student.class.getName() + "(" + Student.class.getName() + ")");
+		}
+
+		// return result
+		return defaultConstructorFound & copyConstructorFound;
 	}
 }

@@ -2,73 +2,78 @@ package model;
 
 import java.util.UUID;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import console.Log;
-
 /**
  * Data class for a task.
  *
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public class Task {
+public class Task extends AObject {
 
-	private UUID uuid;
-	private String name;
-	private double reachableScore;
-	private String comment;
+	private UUID _001_uuid;
+	private String _002_name;
+	private double _003_reachableScore;
+	private String _004_comment;
+
+	public Task() {
+	}
 
 	public Task(UUID uuid, String name, double reachableScore, String comment) {
-		this.uuid = uuid;
-		this.name = name;
-		this.reachableScore = reachableScore;
-		this.comment = comment;
+		this._001_uuid = uuid;
+		this._002_name = name;
+		this._003_reachableScore = reachableScore;
+		this._004_comment = comment;
+	}
+
+	public Task(Task other) {
+		this._001_uuid = other._001_uuid;
+		this._002_name = other._002_name;
+		this._003_reachableScore = other._003_reachableScore;
+		this._004_comment = other._004_comment;
 	}
 
 	public UUID getUuid() {
-		return uuid;
+		return _001_uuid;
 	}
 
 	public void setUuid(UUID uuid) {
-		this.uuid = uuid;
+		this._001_uuid = uuid;
 	}
 
 	public String getName() {
-		return name;
+		return _002_name;
 	}
 
 	public void setName(String name) {
-		this.name = name;
+		this._002_name = name;
 	}
 
 	public double getReachableScore() {
-		return reachableScore;
+		return _003_reachableScore;
 	}
 
 	public void setReachableScore(double reachableScore) {
-		this.reachableScore = reachableScore;
+		this._003_reachableScore = reachableScore;
 	}
 
 	public String getComment() {
-		return comment;
+		return _004_comment;
 	}
 
 	public void setComment(String comment) {
-		this.comment = comment;
+		this._004_comment = comment;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((comment == null) ? 0 : comment.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
+		result = prime * result + ((_004_comment == null) ? 0 : _004_comment.hashCode());
+		result = prime * result + ((_002_name == null) ? 0 : _002_name.hashCode());
 		long temp;
-		temp = Double.doubleToLongBits(reachableScore);
+		temp = Double.doubleToLongBits(_003_reachableScore);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+		result = prime * result + ((_001_uuid == null) ? 0 : _001_uuid.hashCode());
 		return result;
 	}
 
@@ -81,59 +86,28 @@ public class Task {
 		if (getClass() != obj.getClass())
 			return false;
 		Task other = (Task) obj;
-		if (comment == null) {
-			if (other.comment != null)
+		if (_004_comment == null) {
+			if (other._004_comment != null)
 				return false;
-		} else if (!comment.equals(other.comment))
+		} else if (!_004_comment.equals(other._004_comment))
 			return false;
-		if (name == null) {
-			if (other.name != null)
+		if (_002_name == null) {
+			if (other._002_name != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!_002_name.equals(other._002_name))
 			return false;
-		if (Double.doubleToLongBits(reachableScore) != Double.doubleToLongBits(other.reachableScore))
+		if (Double.doubleToLongBits(_003_reachableScore) != Double.doubleToLongBits(other._003_reachableScore))
 			return false;
-		if (uuid == null) {
-			if (other.uuid != null)
+		if (_001_uuid == null) {
+			if (other._001_uuid != null)
 				return false;
-		} else if (!uuid.equals(other.uuid))
+		} else if (!_001_uuid.equals(other._001_uuid))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "Task [uuid=" + uuid + ", name=" + name + ", reachableScore=" + reachableScore + ", comment=" + comment + "]";
-	}
-
-	public static String toJsonString(Task task) {
-		return toJsonObject(task).toJSONString();
-	}
-
-	@SuppressWarnings("unchecked")
-	public static JSONObject toJsonObject(Task task) {
-		JSONObject objToReturn = new JSONObject();
-		objToReturn.put("uuid", task.getUuid().toString());
-		objToReturn.put("name", task.getName());
-		objToReturn.put("reachableScore", task.getReachableScore());
-		objToReturn.put("comment", task.getComment());
-		return objToReturn;
-	}
-
-	public static Task fromJsonString(String jsonString) {
-		try {
-			return fromJsonObject((JSONObject) new JSONParser().parse(jsonString));
-		} catch (Exception e) {
-			Log.error(Task.class, "Could not parse task! " + e.getMessage());
-		}
-		return null;
-	}
-
-	public static Task fromJsonObject(JSONObject jsonObject) {
-		UUID uuid = UUID.fromString((String) jsonObject.get("uuid"));
-		String name = (String) jsonObject.get("name");
-		double reachableScore = (Double) jsonObject.get("reachableScore");
-		String comment = (String) jsonObject.get("comment");
-		return new Task(uuid, name, reachableScore, comment);
+		return "Task [uuid=" + _001_uuid + ", name=" + _002_name + ", reachableScore=" + _003_reachableScore + ", comment=" + _004_comment + "]";
 	}
 }

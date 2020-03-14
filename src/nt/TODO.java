@@ -20,15 +20,20 @@ public class TODO {
 	 * 
 	 * unit test AObject
 	 * 
-	 * table must be sortable
-	 * table must be searchable (ein und ausblenden)
+	 * table must be sortable table must be searchable (ein und ausblenden)
 	 * 
 	 * table must display data according to data type
 	 * 
-	 * table must be editable for strings, dates, 
+	 * table must be editable for strings, dates,
 	 * 
 	 * english simpledateformat globally for e.g. english, other languages
 	 * 
 	 * button in jtable
+	 * 
+	 * ale a objects müssen copy constructor implementieren
+	 * 
+	 * excel tabelle einlesen für schüler
+	 * 
+	 * Generic dialog icon setzen
 	 */
 }

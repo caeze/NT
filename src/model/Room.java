@@ -1,14 +1,9 @@
 package model;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import console.Log;
+import util.ListUtil;
 
 /**
  * Data class for a room.
@@ -16,61 +11,70 @@ import console.Log;
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public class Room {
+public class Room extends AObject {
 
-	private UUID uuid;
-	private String name;
-	private List<Table> tables;
-	private String comment;
+	private UUID _001_uuid;
+	private String _002_name;
+	private List<Table> _003_tables;
+	private String _004_comment;
+
+	public Room() {
+	}
 
 	public Room(UUID uuid, String name, List<Table> tables, String comment) {
-		super();
-		this.uuid = uuid;
-		this.name = name;
-		this.tables = tables;
-		this.comment = comment;
+		this._001_uuid = uuid;
+		this._002_name = name;
+		this._003_tables = tables;
+		this._004_comment = comment;
+	}
+
+	public Room(Room other) {
+		this._001_uuid = other._001_uuid;
+		this._002_name = other._002_name;
+		this._003_tables = new ListUtil<Table>().makeDeepCopy(other._003_tables);
+		this._004_comment = other._004_comment;
 	}
 
 	public UUID getUuid() {
-		return uuid;
+		return _001_uuid;
 	}
 
 	public void setUuid(UUID uuid) {
-		this.uuid = uuid;
+		this._001_uuid = uuid;
 	}
 
 	public String getName() {
-		return name;
+		return _002_name;
 	}
 
 	public void setName(String name) {
-		this.name = name;
+		this._002_name = name;
 	}
 
 	public List<Table> getTables() {
-		return tables;
+		return _003_tables;
 	}
 
 	public void setTables(List<Table> tables) {
-		this.tables = tables;
+		this._003_tables = tables;
 	}
 
 	public String getComment() {
-		return comment;
+		return _004_comment;
 	}
 
 	public void setComment(String comment) {
-		this.comment = comment;
+		this._004_comment = comment;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((comment == null) ? 0 : comment.hashCode());
-		result = prime * result + ((name == null) ? 0 : name.hashCode());
-		result = prime * result + ((tables == null) ? 0 : tables.hashCode());
-		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+		result = prime * result + ((_004_comment == null) ? 0 : _004_comment.hashCode());
+		result = prime * result + ((_002_name == null) ? 0 : _002_name.hashCode());
+		result = prime * result + ((_003_tables == null) ? 0 : _003_tables.hashCode());
+		result = prime * result + ((_001_uuid == null) ? 0 : _001_uuid.hashCode());
 		return result;
 	}
 
@@ -83,69 +87,31 @@ public class Room {
 		if (getClass() != obj.getClass())
 			return false;
 		Room other = (Room) obj;
-		if (comment == null) {
-			if (other.comment != null)
+		if (_004_comment == null) {
+			if (other._004_comment != null)
 				return false;
-		} else if (!comment.equals(other.comment))
+		} else if (!_004_comment.equals(other._004_comment))
 			return false;
-		if (name == null) {
-			if (other.name != null)
+		if (_002_name == null) {
+			if (other._002_name != null)
 				return false;
-		} else if (!name.equals(other.name))
+		} else if (!_002_name.equals(other._002_name))
 			return false;
-		if (tables == null) {
-			if (other.tables != null)
+		if (_003_tables == null) {
+			if (other._003_tables != null)
 				return false;
-		} else if (!tables.equals(other.tables))
+		} else if (!_003_tables.equals(other._003_tables))
 			return false;
-		if (uuid == null) {
-			if (other.uuid != null)
+		if (_001_uuid == null) {
+			if (other._001_uuid != null)
 				return false;
-		} else if (!uuid.equals(other.uuid))
+		} else if (!_001_uuid.equals(other._001_uuid))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "Room [uuid=" + uuid + ", name=" + name + ", tables=" + tables + ", comment=" + comment + "]";
-	}
-
-	public static String toJsonString(Room table) {
-		return toJsonObject(table).toJSONString();
-	}
-
-	@SuppressWarnings("unchecked")
-	public static JSONObject toJsonObject(Room room) {
-		JSONObject objToReturn = new JSONObject();
-		objToReturn.put("uuid", room.getUuid().toString());
-		objToReturn.put("name", room.getName());
-		JSONArray tablesJSONArray = new JSONArray();
-		for (Table t : room.getTables()) {
-			tablesJSONArray.add(Table.toJsonObject(t));
-		}
-		objToReturn.put("tables", tablesJSONArray);
-		objToReturn.put("comment", room.getComment());
-		return objToReturn;
-	}
-
-	public static Room fromJsonString(String jsonString) {
-		try {
-			return fromJsonObject((JSONObject) new JSONParser().parse(jsonString));
-		} catch (Exception e) {
-			Log.error(Table.class, "Could not parse room! " + e.getMessage());
-		}
-		return null;
-	}
-
-	public static Room fromJsonObject(JSONObject jsonObject) throws Exception {
-		UUID uuid = UUID.fromString((String) jsonObject.get("uuid"));
-		String name = (String) jsonObject.get("name");
-		List<Table> tables = new ArrayList<>();
-		for (Object tableJSONObject : (JSONArray) jsonObject.get("tables")) {
-			tables.add(Table.fromJsonObject((JSONObject) tableJSONObject));
-		}
-		String comment = (String) jsonObject.get("comment");
-		return new Room(uuid, name, tables, comment);
+		return "Room [uuid=" + _001_uuid + ", name=" + _002_name + ", tables=" + _003_tables + ", comment=" + _004_comment + "]";
 	}
 }

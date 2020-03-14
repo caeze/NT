@@ -11,15 +11,14 @@ import java.util.UUID;
  */
 public class NormalGrade extends AGrade {
 
-	public NormalGrade(UUID uuid, Course course, Student student, Date date, double grade, String name, String comment) {
+	public NormalGrade() {
+	}
+
+	public NormalGrade(UUID uuid, LazyAObject<Course> course, LazyAObject<Student> student, Date date, double grade, String name, String comment) {
 		super(uuid, course, student, date, grade, name, comment);
 	}
 
-	public static String toJsonString(NormalGrade grade) {
-		return AGrade.toJsonString(grade);
-	}
-
-	public static NormalGrade fromJsonString(String jsonString) {
-		return (NormalGrade) AGrade.fromJsonString(jsonString);
+	public NormalGrade(NormalGrade other) {
+		super(other);
 	}
 }

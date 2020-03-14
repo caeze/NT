@@ -1,19 +1,20 @@
 package control;
 
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+
+import javax.swing.JLabel;
+
 import console.Log;
 import console.StdOutErrSwingConsole;
 import filehandling.FileHandlingUtil;
-import filehandling.HttpFileUtil;
-import nt.NT;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.List;
-import javax.swing.JLabel;
+import model.Model;
 import model.Project;
+import nt.NT;
 import preferences.Preferences;
-import view.ClassEditor;
-import view.MainMenu;
+import view.StartMenu;
 import view.View;
 import view.l10n.L10n;
 import view.util.GenericDialog;
@@ -54,131 +55,185 @@ public class Control {
 		if (Preferences.getInstance().showConsole) {
 			StdOutErrSwingConsole.getInstance(L10n.getString("NT"));
 		}
-		View.getInstance().setContent(MainMenu.getInstance());
-	}
-
-	public void exitProgram() {
-		System.exit(0);
-//        if (ClassEditor.getInstance().editorHasChanges()) {
-//            List<String> options = new ArrayList<>();
-//            options.add(L10n.getString("leaveNT"));
-//            options.add(L10n.getString("save"));
-//            options.add(L10n.getString("cancel"));
-//            GenericDialog dialog = new GenericDialog(L10n.getString("reallyQuit"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("unsavedChangesWillBeLost")))), options);
-//            int selection = dialog.show();
-//            LoadingAnimation.killLoadingAnim();
-//            switch (selection) {
-//                case 0:
-//                    System.exit(0);
-//                    break;
-//                case 1:
-//                    boolean success = saveCurrentProject();
-//                    if (success) {
-//                        System.exit(0);
-//                    }
-//                    break;
-//                case 2:
-//                default:
-//                    break;
-//            }
-//        } else {
-//            GenericDialog dialog = new GenericDialog(L10n.getString("reallyQuit"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("reallyQuitQuestion")))));
-//            int selection = dialog.show();
-//            if (selection == GenericDialog.SELECTION_OK) {
-//                LoadingAnimation.killLoadingAnim();
-//                System.exit(0);
-//            }
-//        }
+		View.getInstance().pushViewComponent(new StartMenu());
 	}
 
 	public boolean saveCurrentProject() {
-//        String path = FileHandlingUtil.getInstance().showSaveFileSelector();
-//        if (path != null) {
-//            if (!path.endsWith(".japy")) {
-//                path = path + ".japy";
-//            }
-//            Project project = new Project(ClassEditor.getInstance().getEditorTitles(), ClassEditor.getInstance().getEditorContents(), NT.VERSION, new Date());
-//            String content = ProjectJsonConverter.getInstance().projectToJsonString(project);
-//            FileHandlingUtil.getInstance().writeStringToFile(path, content);
-//            return true;
-//        }
+		String path = FileHandlingUtil.getInstance().showSaveFileSelector("json");
+		if (path != null) {
+			if (!path.endsWith(".json")) {
+				path = path + ".json";
+			}
+			Preferences.getInstance().lastOpenedProjectPath = path;
+			Preferences.getInstance().persist();
+			String content = Model.getInstance().getCurrentProject().toJsonString();
+			FileHandlingUtil.getInstance().writeStringToFile(path, content);
+			return true;
+		}
 		return false;
 	}
 
-//
-	public void loadEmptyProject() {
-//        List<String> titles = new ArrayList<>();
-//        titles.add(L10n.getString("new") + "_1");
-//        List<String> files = new ArrayList<>();
-//        files.add("");
-//        ClassEditor.getInstance().setEditorContents(titles, files);
+	public boolean loadLastOpenedProject() {
+		if (!lastOpenedProjectExists()) {
+			Log.error(Control.class, "Can not load last project as it does not exist!");
+			return false;
+		}
+
+		if (Model.getInstance().hasUnsavedChanges()) {
+			List<String> options = new ArrayList<>();
+			options.add(L10n.getString("loadProjectWithoutSavingCurrentOne"));
+			options.add(L10n.getString("save"));
+			options.add(L10n.getString("cancel"));
+			GenericDialog dialog = new GenericDialog(L10n.getString("reallyLoadProjectWithoutSavingCurrentOne"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("unsavedChangesWillBeLost")))), options);
+			int selection = dialog.show();
+			switch (selection) {
+			case 0:
+				loadProjectFromDisk(Preferences.getInstance().lastOpenedProjectPath);
+				return true;
+			case 1:
+				boolean success = saveCurrentProject();
+				if (success) {
+					loadProjectFromDisk(Preferences.getInstance().lastOpenedProjectPath);
+					return true;
+				} else {
+					GenericDialog failedDialog = new GenericDialog(L10n.getString("saveFailed"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("saveFailed")))), true);
+					failedDialog.show();
+				}
+				break;
+			case 2:
+			default:
+				break;
+			}
+		} else {
+			loadProjectFromDisk(Preferences.getInstance().lastOpenedProjectPath);
+			return true;
+		}
+		return false;
 	}
 
-//
-	public void loadProjectFromDisk() {
-//        if (ClassEditor.getInstance().editorHasChanges()) {
-//            List<String> options = new ArrayList<>();
-//            options.add(L10n.getString("loadProjectWithoutSavingCurrentOne"));
-//            options.add(L10n.getString("save"));
-//            options.add(L10n.getString("cancel"));
-//            GenericDialog dialog = new GenericDialog(L10n.getString("reallyLoadProjectWithoutSavingCurrentOne"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("unsavedChangesWillBeLost")))), options);
-//            int selection = dialog.show();
-//            LoadingAnimation.killLoadingAnim();
-//            switch (selection) {
-//                case 0:
-//                    ClassEditor.getInstance().clearEditors();
-//                    String path = FileHandlingUtil.getInstance().showOpenFileSelector();
-//                    if (path != null) {
-//                        String content = FileHandlingUtil.getInstance().readFileAsString(path);
-//                        Project project = ProjectJsonConverter.getInstance().jsonStringToProject(content);
-//                        ClassEditor.getInstance().setEditorContents(project.getTitles(), project.getFiles());
-//                    }
-//                    break;
-//                case 1:
-//                    boolean success = saveCurrentProject();
-//                    if (success) {
-//                        ClassEditor.getInstance().clearEditors();
-//                        String pathToLoad = FileHandlingUtil.getInstance().showOpenFileSelector();
-//                        if (pathToLoad != null) {
-//                            String content = FileHandlingUtil.getInstance().readFileAsString(pathToLoad);
-//                            Project project = ProjectJsonConverter.getInstance().jsonStringToProject(content);
-//                            ClassEditor.getInstance().setEditorContents(project.getTitles(), project.getFiles());
-//                        }
-//                        break;
-//                    }
-//                    break;
-//                case 2:
-//                default:
-//                    break;
-//            }
-//        } else {
-//            ClassEditor.getInstance().clearEditors();
-//            String path = FileHandlingUtil.getInstance().showOpenFileSelector();
-//            if (path != null) {
-//                String content = FileHandlingUtil.getInstance().readFileAsString(path);
-//                Project project = ProjectJsonConverter.getInstance().jsonStringToProject(content);
-//                ClassEditor.getInstance().setEditorContents(project.getTitles(), project.getFiles());
-//            }
-//        }
+	public boolean loadProjectFromDisk() {
+		if (Model.getInstance().hasUnsavedChanges()) {
+			List<String> options = new ArrayList<>();
+			options.add(L10n.getString("loadProjectWithoutSavingCurrentOne"));
+			options.add(L10n.getString("save"));
+			options.add(L10n.getString("cancel"));
+			GenericDialog dialog = new GenericDialog(L10n.getString("reallyLoadProjectWithoutSavingCurrentOne"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("unsavedChangesWillBeLost")))), options);
+			int selection = dialog.show();
+			switch (selection) {
+			case 0:
+				File f = FileHandlingUtil.getInstance().showOpenFileSelector("json");
+				if (f != null) {
+					loadProjectFromDisk(f.getAbsolutePath());
+					return true;
+				}
+				break;
+			case 1:
+				boolean success = saveCurrentProject();
+				if (success) {
+					f = FileHandlingUtil.getInstance().showOpenFileSelector("json");
+					if (f != null) {
+						loadProjectFromDisk(f.getAbsolutePath());
+						return true;
+					}
+				} else {
+					GenericDialog failedDialog = new GenericDialog(L10n.getString("saveFailed"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("saveFailed")))), true);
+					failedDialog.show();
+				}
+				break;
+			case 2:
+			default:
+				break;
+			}
+		} else {
+			File f = FileHandlingUtil.getInstance().showOpenFileSelector("json");
+			if (f != null) {
+				loadProjectFromDisk(f.getAbsolutePath());
+				return true;
+			}
+		}
+		return false;
 	}
 
-//
-	public void loadProjectFromNetwork() {
-//        String path = Preferences.getInstance().projectLocation;
-//        LoadingAnimation.showLoadingAnim();
-//        HttpFileUtil.getInstance().getFileViaHttp(path, new HttpFileUtil.IHttpCallback() {
-//            @Override
-//            public void success(String data) {
-//                Project project = ProjectJsonConverter.getInstance().jsonStringToProject(data);
-//                ClassEditor.getInstance().setEditorContents(project.getTitles(), project.getFiles());
-//                LoadingAnimation.killLoadingAnim();
-//            }
-//
-//            @Override
-//            public void failure(String data) {
-//                Log.error(Control.class, "Could not load project from network: " + data);
-//                LoadingAnimation.killLoadingAnim();
-//            }
-//        });
+	public void loadProjectFromDisk(String projectPath) {
+		String projectJsonString = FileHandlingUtil.getInstance().readFileAsString(projectPath);
+		Project project = (Project) new Project().fillFromJsonString(projectJsonString);
+		Model.getInstance().setCurrentProject(project);
+	}
+
+	public boolean loadEmptyProject() {
+		if (Model.getInstance().hasUnsavedChanges()) {
+			List<String> options = new ArrayList<>();
+			options.add(L10n.getString("loadProjectWithoutSavingCurrentOne"));
+			options.add(L10n.getString("save"));
+			options.add(L10n.getString("cancel"));
+			GenericDialog dialog = new GenericDialog(L10n.getString("reallyLoadProjectWithoutSavingCurrentOne"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("unsavedChangesWillBeLost")))), options);
+			int selection = dialog.show();
+			switch (selection) {
+			case 0:
+				Model.getInstance().loadEmptyProject();
+				return true;
+			case 1:
+				boolean success = saveCurrentProject();
+				if (success) {
+					Model.getInstance().loadEmptyProject();
+					return true;
+				} else {
+					GenericDialog failedDialog = new GenericDialog(L10n.getString("saveFailed"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("saveFailed")))), true);
+					failedDialog.show();
+				}
+				break;
+			case 2:
+			default:
+				break;
+			}
+		} else {
+			Model.getInstance().loadEmptyProject();
+			return true;
+		}
+		return false;
+	}
+
+	public boolean lastOpenedProjectExists() {
+		if (Preferences.getInstance().lastOpenedProjectPath.isEmpty()) {
+			return false;
+		}
+		File lastOpenedProjectFile = new File(Preferences.getInstance().lastOpenedProjectPath);
+		return lastOpenedProjectFile.exists();
+	}
+
+	public void exitProgram() {
+		if (Model.getInstance().hasUnsavedChanges()) {
+			List<String> options = new ArrayList<>();
+			options.add(L10n.getString("leaveNT"));
+			options.add(L10n.getString("save"));
+			options.add(L10n.getString("cancel"));
+			GenericDialog dialog = new GenericDialog(L10n.getString("reallyQuit"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("unsavedChangesWillBeLost")))), options);
+			int selection = dialog.show();
+			LoadingAnimation.killLoadingAnim();
+			switch (selection) {
+			case 0:
+				System.exit(0);
+				break;
+			case 1:
+				boolean success = saveCurrentProject();
+				if (success) {
+					System.exit(0);
+				} else {
+					GenericDialog failedDialog = new GenericDialog(L10n.getString("saveFailed"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("saveFailed")))), true);
+					failedDialog.show();
+				}
+				break;
+			case 2:
+			default:
+				break;
+			}
+		} else {
+			GenericDialog dialog = new GenericDialog(L10n.getString("reallyQuit"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("reallyQuitQuestion")))));
+			int selection = dialog.show();
+			if (selection == GenericDialog.SELECTION_OK) {
+				LoadingAnimation.killLoadingAnim();
+				System.exit(0);
+			}
+		}
 	}
 }

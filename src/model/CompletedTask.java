@@ -2,84 +2,90 @@ package model;
 
 import java.util.UUID;
 
-import org.json.simple.JSONObject;
-import org.json.simple.parser.JSONParser;
-
-import console.Log;
-
 /**
  * Data class for a completed task.
  *
  * @author Clemens Strobel
  * @date 2020/02/04
  */
-public class CompletedTask {
+public class CompletedTask extends AObject {
 
-	private UUID uuid;
-	private UUID taskUuid;
-	private UUID studentUuid;
-	private double reachedScore;
-	private String comment;
+	private UUID _001_uuid;
+	private LazyAObject<Task> _002_task;
+	private LazyAObject<Student> _003_student;
+	private double _004_reachedScore;
+	private String _005_comment;
 
-	public CompletedTask(UUID uuid, UUID taskUuid, UUID studentUuid, double reachedScore, String comment) {
-		this.uuid = uuid;
-		this.taskUuid = taskUuid;
-		this.studentUuid = studentUuid;
-		this.reachedScore = reachedScore;
-		this.comment = comment;
+	public CompletedTask() {
+	}
+
+	public CompletedTask(UUID uuid, LazyAObject<Task> task, LazyAObject<Student> student, double reachedScore, String comment) {
+		this._001_uuid = uuid;
+		this._002_task = task;
+		this._003_student = student;
+		this._004_reachedScore = reachedScore;
+		this._005_comment = comment;
+	}
+
+	public CompletedTask(CompletedTask other) {
+		this._001_uuid = other._001_uuid;
+		this._002_task = other._002_task;
+		this._003_student = other._003_student;
+		this._004_reachedScore = other._004_reachedScore;
+		this._005_comment = other._005_comment;
 	}
 
 	public UUID getUuid() {
-		return uuid;
+		return _001_uuid;
 	}
 
 	public void setUuid(UUID uuid) {
-		this.uuid = uuid;
+		this._001_uuid = uuid;
 	}
 
-	public UUID getTaskUuid() {
-		return taskUuid;
+	public LazyAObject<Task> getTask() {
+		return _002_task;
 	}
 
-	public void setTaskUuid(UUID taskUuid) {
-		this.taskUuid = taskUuid;
+	public void setTask(LazyAObject<Task> task) {
+		this._002_task = task;
 	}
 
-	public UUID getStudentUuid() {
-		return studentUuid;
+	public LazyAObject<Student> getStudent() {
+		return _003_student;
 	}
 
-	public void setStudentUuid(UUID studentUuid) {
-		this.studentUuid = studentUuid;
+	public void setStudent(LazyAObject<Student> student) {
+		this._003_student = student;
 	}
 
 	public double getReachedScore() {
-		return reachedScore;
+		return _004_reachedScore;
 	}
 
 	public void setReachedScore(double reachedScore) {
-		this.reachedScore = reachedScore;
+		this._004_reachedScore = reachedScore;
 	}
 
 	public String getComment() {
-		return comment;
+		return _005_comment;
 	}
 
 	public void setComment(String comment) {
-		this.comment = comment;
+		this._005_comment = comment;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((comment == null) ? 0 : comment.hashCode());
+		result = prime * result + ((_005_comment == null) ? 0 : _005_comment.hashCode());
 		long temp;
-		temp = Double.doubleToLongBits(reachedScore);
+		temp = Double.doubleToLongBits(_004_reachedScore);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
-		result = prime * result + ((studentUuid == null) ? 0 : studentUuid.hashCode());
-		result = prime * result + ((taskUuid == null) ? 0 : taskUuid.hashCode());
-		result = prime * result + ((uuid == null) ? 0 : uuid.hashCode());
+		result = prime * result + ((_003_student == null) ? 0 : _003_student.hashCode());
+		result = prime * result + ((_002_task == null) ? 0 : _002_task.hashCode());
+		result = prime * result + ((_001_uuid == null) ? 0 : _001_uuid.hashCode());
 		return result;
 	}
 
@@ -92,66 +98,33 @@ public class CompletedTask {
 		if (getClass() != obj.getClass())
 			return false;
 		CompletedTask other = (CompletedTask) obj;
-		if (comment == null) {
-			if (other.comment != null)
+		if (_005_comment == null) {
+			if (other._005_comment != null)
 				return false;
-		} else if (!comment.equals(other.comment))
+		} else if (!_005_comment.equals(other._005_comment))
 			return false;
-		if (Double.doubleToLongBits(reachedScore) != Double.doubleToLongBits(other.reachedScore))
+		if (Double.doubleToLongBits(_004_reachedScore) != Double.doubleToLongBits(other._004_reachedScore))
 			return false;
-		if (studentUuid == null) {
-			if (other.studentUuid != null)
+		if (_003_student == null) {
+			if (other._003_student != null)
 				return false;
-		} else if (!studentUuid.equals(other.studentUuid))
+		} else if (!_003_student.equals(other._003_student))
 			return false;
-		if (taskUuid == null) {
-			if (other.taskUuid != null)
+		if (_002_task == null) {
+			if (other._002_task != null)
 				return false;
-		} else if (!taskUuid.equals(other.taskUuid))
+		} else if (!_002_task.equals(other._002_task))
 			return false;
-		if (uuid == null) {
-			if (other.uuid != null)
+		if (_001_uuid == null) {
+			if (other._001_uuid != null)
 				return false;
-		} else if (!uuid.equals(other.uuid))
+		} else if (!_001_uuid.equals(other._001_uuid))
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "CompletedTask [uuid=" + uuid + ", taskUuid=" + taskUuid + ", studentUuid=" + studentUuid + ", reachedScore=" + reachedScore + ", comment=" + comment + "]";
-	}
-
-	public static String toJsonString(CompletedTask completedTask) {
-		return toJsonObject(completedTask).toJSONString();
-	}
-
-	@SuppressWarnings("unchecked")
-	public static JSONObject toJsonObject(CompletedTask completedTask) {
-		JSONObject objToReturn = new JSONObject();
-		objToReturn.put("uuid", completedTask.getUuid().toString());
-		objToReturn.put("taskUuid", completedTask.getTaskUuid().toString());
-		objToReturn.put("studentUuid", completedTask.getStudentUuid().toString());
-		objToReturn.put("reachedScore", completedTask.getReachedScore());
-		objToReturn.put("comment", completedTask.getComment());
-		return objToReturn;
-	}
-
-	public static CompletedTask fromJsonString(String jsonString) {
-		try {
-			return fromJsonObject((JSONObject) new JSONParser().parse(jsonString));
-		} catch (Exception e) {
-			Log.error(CompletedTask.class, "Could not parse completed task! " + e.getMessage());
-		}
-		return null;
-	}
-
-	public static CompletedTask fromJsonObject(JSONObject jsonObject) {
-		UUID uuid = UUID.fromString((String) jsonObject.get("uuid"));
-		UUID taskUuid = UUID.fromString((String) jsonObject.get("taskUuid"));
-		UUID studentUuid = UUID.fromString((String) jsonObject.get("studentUuid"));
-		double reachedScore = (Double) jsonObject.get("reachedScore");
-		String comment = (String) jsonObject.get("comment");
-		return new CompletedTask(uuid, taskUuid, studentUuid, reachedScore, comment);
+		return "CompletedTask [uuid=" + _001_uuid + ", task=" + _002_task + ", student=" + _003_student + ", reachedScore=" + _004_reachedScore + ", comment=" + _005_comment + "]";
 	}
 }

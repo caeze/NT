@@ -53,34 +53,16 @@ public class CharacteristicCurveEditor implements IViewComponent {
 	private static final ListUtil<RelativePoint> LU = new ListUtil<>();
 	private static final Font FONT = new Font("Century Schoolbook", 1, 11);
 
-	private static CharacteristicCurveEditor instance;
-
 	private CharacteristicCurve curve;
 	private GradeType gradeType;
 	private RelativePoint highlightedPoint = null;
 
 	private CharacteristicCurveEditorBoard editor = new CharacteristicCurveEditorBoard();
-	private RelativePoint northWest = new RelativePoint(0.0, 0.0);
-	private RelativePoint southWest = new RelativePoint(0.0, 1.0);
-	private RelativePoint northEast = new RelativePoint(1.0, 0.0);
+	private RelativePoint northWest = new RelativePoint(UUID.randomUUID(), 0.0, 0.0);
+	private RelativePoint southWest = new RelativePoint(UUID.randomUUID(), 0.0, 1.0);
+	private RelativePoint northEast = new RelativePoint(UUID.randomUUID(), 1.0, 0.0);
 	private List<RelativePoint> gridLinesStartPoints;
 	private List<RelativePoint> gridLinesEndPoints;
-
-	private CharacteristicCurveEditor() {
-		// hide constructor, singleton pattern
-	}
-
-	/**
-	 * Get an instance, singleton pattern.
-	 *
-	 * @return an instance
-	 */
-	public static CharacteristicCurveEditor getInstance() {
-		if (instance == null) {
-			instance = new CharacteristicCurveEditor();
-		}
-		return instance;
-	}
 
 	@Override
 	public List<JButton> getButtonsLeft() {
@@ -116,7 +98,7 @@ public class CharacteristicCurveEditor implements IViewComponent {
 	}
 
 	@Override
-	public JComponent initializeViewComponent() {
+	public JComponent initializeViewComponent(boolean f) {
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		GridBagConstraints constraints = new GridBagConstraints();
 
@@ -137,7 +119,10 @@ public class CharacteristicCurveEditor implements IViewComponent {
 
 	@Override
 	public void uninitializeViewComponent() {
-		instance = null;
+	}
+
+	@Override
+	public void resultFromLastViewComponent(IViewComponent component, Result result) {
 	}
 
 	private enum Mode {
@@ -159,12 +144,12 @@ public class CharacteristicCurveEditor implements IViewComponent {
 
 			if (curve == null) {
 				ArrayList<RelativePoint> l = new ArrayList<>();
-				l.add(new RelativePoint(0, 1));
-				l.add(new RelativePoint(1, 0));
+				l.add(new RelativePoint(UUID.randomUUID(), 0, 1));
+				l.add(new RelativePoint(UUID.randomUUID(), 1, 0));
 				curve = new CharacteristicCurve(UUID.randomUUID(), l, "comment");
 			}
 			if (gradeType == null) {
-				gradeType = GradeType.GRADES_1_TO_6;
+				gradeType = GradeType.DefaultGradeTypes.GRADES_1_TO_6;
 			}
 		}
 
@@ -178,12 +163,12 @@ public class CharacteristicCurveEditor implements IViewComponent {
 
 				double gridSizeForGradeType = gradeType.getSpacing() / Math.abs(gradeType.getBestGrade() - gradeType.getWorstGrade());
 				for (double i = 0; i < 1 + FloatingPointUtil.FLOATING_POINT_DELTA; i += gridSizeForGradeType) {
-					gridLinesStartPoints.add(new RelativePoint(northWest.getX(), northWest.getY() + i));
-					gridLinesEndPoints.add(new RelativePoint(northEast.getX(), northEast.getY() + i));
+					gridLinesStartPoints.add(new RelativePoint(UUID.randomUUID(), northWest.getX(), northWest.getY() + i));
+					gridLinesEndPoints.add(new RelativePoint(UUID.randomUUID(), northEast.getX(), northEast.getY() + i));
 				}
 				for (double i = 0; i < 1 + FloatingPointUtil.FLOATING_POINT_DELTA; i += GRID_SIZE) {
-					gridLinesStartPoints.add(new RelativePoint(northWest.getX() + i, northWest.getY()));
-					gridLinesEndPoints.add(new RelativePoint(southWest.getX() + i, southWest.getY()));
+					gridLinesStartPoints.add(new RelativePoint(UUID.randomUUID(), northWest.getX() + i, northWest.getY()));
+					gridLinesEndPoints.add(new RelativePoint(UUID.randomUUID(), southWest.getX() + i, southWest.getY()));
 				}
 			}
 
@@ -248,27 +233,27 @@ public class CharacteristicCurveEditor implements IViewComponent {
 
 		@Override
 		public void componentResized(ComponentEvent e) {
-			Log.debug(CharacteristicCurve.class, "componentResized, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "componentResized, Mode: " + mode);
 		}
 
 		@Override
 		public void componentMoved(ComponentEvent e) {
-			Log.debug(CharacteristicCurve.class, "componentMoved, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "componentMoved, Mode: " + mode);
 		}
 
 		@Override
 		public void componentShown(ComponentEvent e) {
-			Log.debug(CharacteristicCurve.class, "componentShown, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "componentShown, Mode: " + mode);
 		}
 
 		@Override
 		public void componentHidden(ComponentEvent e) {
-			Log.debug(CharacteristicCurve.class, "componentHidden, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "componentHidden, Mode: " + mode);
 		}
 
 		@Override
 		public void mouseClicked(MouseEvent e) {
-			Log.debug(CharacteristicCurve.class, "mouseClicked, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "mouseClicked, Mode: " + mode);
 
 			if (Mode.ADD_POINT.equals(mode)) {
 				addPoint(e.getX(), e.getY());
@@ -278,29 +263,29 @@ public class CharacteristicCurveEditor implements IViewComponent {
 
 		@Override
 		public void mousePressed(MouseEvent e) {
-			Log.debug(CharacteristicCurve.class, "mousePressed, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "mousePressed, Mode: " + mode);
 
 			requestFocusInWindow();
 		}
 
 		@Override
 		public void mouseReleased(MouseEvent e) {
-			Log.debug(CharacteristicCurve.class, "mouseReleased, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "mouseReleased, Mode: " + mode);
 		}
 
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			Log.debug(CharacteristicCurve.class, "mouseEntered, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "mouseEntered, Mode: " + mode);
 		}
 
 		@Override
 		public void mouseExited(MouseEvent e) {
-			Log.debug(CharacteristicCurve.class, "mouseExited, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "mouseExited, Mode: " + mode);
 		}
 
 		@Override
 		public void mouseDragged(MouseEvent e) {
-			Log.debug(CharacteristicCurve.class, "mouseDragged, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "mouseDragged, Mode: " + mode);
 
 			if (Mode.MOVE_POINT.equals(mode)) {
 				removePoint(highlightedPoint);
@@ -321,17 +306,17 @@ public class CharacteristicCurveEditor implements IViewComponent {
 
 		@Override
 		public void mouseWheelMoved(MouseWheelEvent e) {
-			Log.debug(CharacteristicCurve.class, "mouseWheelMoved, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "mouseWheelMoved, Mode: " + mode);
 		}
 
 		@Override
 		public void keyPressed(KeyEvent e) {
-			Log.debug(CharacteristicCurve.class, "keyPressed, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "keyPressed, Mode: " + mode);
 		}
 
 		@Override
 		public void keyReleased(KeyEvent e) {
-			Log.debug(CharacteristicCurve.class, "keyReleased, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "keyReleased, Mode: " + mode);
 			int key = e.getKeyCode();
 			if (key == KeyEvent.VK_DELETE) {
 				removePoint(highlightedPoint);
@@ -342,7 +327,7 @@ public class CharacteristicCurveEditor implements IViewComponent {
 
 		@Override
 		public void keyTyped(KeyEvent e) {
-			Log.debug(CharacteristicCurve.class, "keyTyped, Mode: " + mode);
+			Log.debug(CharacteristicCurveEditor.class, "keyTyped, Mode: " + mode);
 		}
 
 		@Override
@@ -389,7 +374,7 @@ public class CharacteristicCurveEditor implements IViewComponent {
 				}
 			}
 
-			RelativePoint p = new RelativePoint(x, y);
+			RelativePoint p = new RelativePoint(UUID.randomUUID(), x, y);
 			curve.getPoints().add(p);
 
 			Collections.sort(curve.getPoints(), new Comparator<RelativePoint>() {

@@ -1,7 +1,5 @@
 package view;
 
-import console.Log;
-import control.Control;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -11,13 +9,18 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.ArrayList;
+import java.util.List;
+
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 
+import console.Log;
+import control.Control;
 import view.img.ImageStore;
-import javax.swing.JButton;
-import javax.swing.JComponent;
 import view.itf.IViewComponent;
 import view.l10n.L10n;
 import view.util.ButtonUtil;
@@ -31,165 +34,181 @@ import view.util.ColorStore;
  */
 public class View extends JFrame {
 
-    private static View instance;
+	private static View instance;
 
-    private JPanel menuLeftPanel;
-    private JPanel menuCenterPanel;
-    private JPanel menuRightPanel;
-    private JPanel viewContentPanel;
-    private IViewComponent currentComponent;
-    private boolean alreadyInitialized = false;
+	private JPanel menuLeftPanel;
+	private JPanel menuCenterPanel;
+	private JPanel menuRightPanel;
+	private JPanel viewContentPanel;
+	private boolean alreadyInitialized = false;
 
-    private View() {
-        // hide constructor, singleton pattern
-        super(L10n.getString("NT"));
-    }
+	private List<IViewComponent> viewComponentStack = new ArrayList<>();
 
-    /**
-     * Get an instance, singleton pattern.
-     *
-     * @return an instance
-     */
-    public static View getInstance() {
-        if (instance == null) {
-            instance = new View();
-            instance.init();
-        }
-        return instance;
-    }
+	private View() {
+		// hide constructor, singleton pattern
+		super(L10n.getString("NT"));
+	}
 
-    private void init() {
-        try {
-            ImageIcon icon = ImageStore.getImageIcon("logo.png");
-            setIconImage(icon.getImage());
-        } catch (Exception e) {
-            Log.error(View.class, e.getMessage());
-        }
+	/**
+	 * Get an instance, singleton pattern.
+	 *
+	 * @return an instance
+	 */
+	public static View getInstance() {
+		if (instance == null) {
+			instance = new View();
+			instance.init();
+		}
+		return instance;
+	}
 
-        GridBagLayout gridBagLayout = new GridBagLayout();
-        GridBagConstraints constraints = new GridBagConstraints();
+	private void init() {
+		try {
+			ImageIcon icon = ImageStore.getImageIcon("logo.png");
+			setIconImage(icon.getImage());
+		} catch (Exception e) {
+			Log.error(View.class, e.getMessage());
+		}
 
-        JPanel contentPanel = new JPanel(gridBagLayout);
+		GridBagLayout gridBagLayout = new GridBagLayout();
+		GridBagConstraints constraints = new GridBagConstraints();
 
-        JPanel menuPanel = new JPanel(gridBagLayout);
-        menuLeftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        menuLeftPanel.setBackground(ColorStore.BACKGROUND_DARK);
-        constraints.weightx = 1;
-        constraints.fill = GridBagConstraints.BOTH;
-        constraints.gridwidth = 1;
-        menuPanel.add(menuLeftPanel, constraints);
-        menuCenterPanel = new JPanel(new GridLayout(1, 1));
-        menuCenterPanel.setBackground(ColorStore.BACKGROUND_DARK);
-        constraints.gridwidth = 2;
-        menuPanel.add(menuCenterPanel, constraints);
-        menuRightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        menuRightPanel.setBackground(ColorStore.BACKGROUND_DARK);
-        constraints.gridwidth = 1;
-        menuPanel.add(menuRightPanel, constraints);
+		JPanel contentPanel = new JPanel(gridBagLayout);
 
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        constraints.anchor = GridBagConstraints.PAGE_START;
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.weighty = 0;
-        constraints.weightx = 1;
-        constraints.ipadx = 0;
-        constraints.ipady = 0;
-        contentPanel.add(menuPanel, constraints);
+		JPanel menuPanel = new JPanel(gridBagLayout);
+		menuLeftPanel = new JPanel(new FlowLayout(FlowLayout.LEFT));
+		menuLeftPanel.setBackground(ColorStore.BACKGROUND_DARK);
+		constraints.weightx = 1;
+		constraints.fill = GridBagConstraints.BOTH;
+		constraints.gridwidth = 1;
+		menuPanel.add(menuLeftPanel, constraints);
+		menuCenterPanel = new JPanel(new GridLayout(1, 1));
+		menuCenterPanel.setBackground(ColorStore.BACKGROUND_DARK);
+		constraints.gridwidth = 2;
+		menuPanel.add(menuCenterPanel, constraints);
+		menuRightPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+		menuRightPanel.setBackground(ColorStore.BACKGROUND_DARK);
+		constraints.gridwidth = 1;
+		menuPanel.add(menuRightPanel, constraints);
 
-        JPanel colorBannerPanel = new JPanel(gridBagLayout);
-        colorBannerPanel.setBackground(ColorStore.BACKGROUND_NORMAL);
-        JButton emptyButton1 = ButtonUtil.createButton("empty.png", 10, 10);
-        colorBannerPanel.add(emptyButton1);
-        constraints.gridx = 0;
-        constraints.gridy = 1;
-        constraints.anchor = GridBagConstraints.CENTER;
-        constraints.fill = GridBagConstraints.HORIZONTAL;
-        constraints.weightx = 1;
-        constraints.weighty = 0;
-        constraints.ipadx = 0;
-        constraints.ipady = 0;
-        contentPanel.add(colorBannerPanel, constraints);
+		constraints.gridx = 0;
+		constraints.gridy = 0;
+		constraints.anchor = GridBagConstraints.PAGE_START;
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weighty = 0;
+		constraints.weightx = 1;
+		constraints.ipadx = 0;
+		constraints.ipady = 0;
+		contentPanel.add(menuPanel, constraints);
 
-        viewContentPanel = new JPanel(gridBagLayout);
-        viewContentPanel.setBackground(ColorStore.BACKGROUND);
-        constraints.gridx = 0;
-        constraints.gridy = 2;
-        constraints.anchor = GridBagConstraints.PAGE_START;
-        constraints.fill = GridBagConstraints.BOTH;
-        constraints.weightx = 1;
-        constraints.weighty = 1;
-        contentPanel.add(viewContentPanel, constraints);
+		JPanel colorBannerPanel = new JPanel(gridBagLayout);
+		colorBannerPanel.setBackground(ColorStore.BACKGROUND_NORMAL);
+		JButton emptyButton1 = ButtonUtil.createButton("empty.png", 10, 10);
+		colorBannerPanel.add(emptyButton1);
+		constraints.gridx = 0;
+		constraints.gridy = 1;
+		constraints.anchor = GridBagConstraints.CENTER;
+		constraints.fill = GridBagConstraints.HORIZONTAL;
+		constraints.weightx = 1;
+		constraints.weighty = 0;
+		constraints.ipadx = 0;
+		constraints.ipady = 0;
+		contentPanel.add(colorBannerPanel, constraints);
 
-        instance.add(contentPanel);
+		viewContentPanel = new JPanel(gridBagLayout);
+		viewContentPanel.setBackground(ColorStore.BACKGROUND);
+		constraints.gridx = 0;
+		constraints.gridy = 2;
+		constraints.anchor = GridBagConstraints.PAGE_START;
+		constraints.fill = GridBagConstraints.BOTH;
+		constraints.weightx = 1;
+		constraints.weighty = 1;
+		contentPanel.add(viewContentPanel, constraints);
 
-        // own exit handler
-        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                Control.getInstance().exitProgram();
-            }
-        });
+		instance.add(contentPanel);
 
-        if (!alreadyInitialized) {
-            alreadyInitialized = true;
-            setSize(800, 500);
-            setMinimumSize(getSize());
-            setLocationRelativeTo(null);
-            setVisible(true);
-            pack();
-        }
-    }
+		// own exit handler
+		setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+		addWindowListener(new WindowAdapter() {
+			@Override
+			public void windowClosing(WindowEvent e) {
+				Control.getInstance().exitProgram();
+			}
+		});
 
-    public void setContent(IViewComponent componentToSet) {
-        if (currentComponent != null) {
-            currentComponent.uninitializeViewComponent();
-        }
-        currentComponent = componentToSet;
+		if (!alreadyInitialized) {
+			alreadyInitialized = true;
+			setSize(800, 500);
+			setMinimumSize(getSize());
+			setLocationRelativeTo(null);
+			setVisible(true);
+			pack();
+		}
+	}
 
-        menuLeftPanel.removeAll();
-        menuCenterPanel.removeAll();
-        menuRightPanel.removeAll();
-        viewContentPanel.removeAll();
+	public void pushViewComponent(IViewComponent componentToSet) {
+		viewComponentStack.add(0, componentToSet);
+		setContent(componentToSet, true);
+	}
 
-        for (JButton button : componentToSet.getButtonsLeft()) {
-            menuLeftPanel.add(button);
-        }
-        JPanel menuCenterInnerPanel = new JPanel();
-        menuCenterInnerPanel.setLayout(new GridLayout(1, 1));
-        menuCenterInnerPanel.setBackground(ColorStore.BACKGROUND_DARK);
-        for (JComponent component : componentToSet.getComponentsCenter()) {
-            menuCenterInnerPanel.add(component, BorderLayout.SOUTH);
-        }
-        menuCenterPanel.add(menuCenterInnerPanel, BorderLayout.SOUTH);
-        for (JButton button : componentToSet.getButtonsRight()) {
-            menuRightPanel.add(button);
-        }
+	public IViewComponent popViewComponent() {
+		return popViewComponent(IViewComponent.Result.NONE);
+	}
 
-        GridBagConstraints constraints = new GridBagConstraints();
-        constraints.weightx = 1;
-        constraints.weighty = 1;
-        constraints.gridx = 0;
-        constraints.gridy = 0;
-        constraints.gridwidth = 1;
-        constraints.fill = GridBagConstraints.BOTH;
-        constraints.anchor = GridBagConstraints.PAGE_START;
-        constraints.ipadx = 0;
-        constraints.ipady = 0;
-        JComponent c = componentToSet.initializeViewComponent();
-        c.setBackground(ColorStore.BACKGROUND_LIGHT);
-        viewContentPanel.add(c, constraints);
+	public IViewComponent popViewComponent(IViewComponent.Result action) {
+		if (viewComponentStack.size() < 2) {
+			Control.getInstance().exitProgram();
+		}
+		IViewComponent c = viewComponentStack.remove(0);
+		c.uninitializeViewComponent();
+		setContent(viewComponentStack.get(0), false);
+		viewComponentStack.get(0).resultFromLastViewComponent(c, action);
+		return c;
+	}
 
-        repaint();
-        revalidate();
-    }
+	private void setContent(IViewComponent componentToSet, boolean firstInitialization) {
+		menuLeftPanel.removeAll();
+		menuCenterPanel.removeAll();
+		menuRightPanel.removeAll();
+		viewContentPanel.removeAll();
 
-    public Dimension getContentViewSize() {
-        return viewContentPanel.getSize();
-    }
+		for (JButton button : componentToSet.getButtonsLeft()) {
+			menuLeftPanel.add(button);
+		}
+		JPanel menuCenterInnerPanel = new JPanel();
+		menuCenterInnerPanel.setLayout(new GridLayout(1, 1));
+		menuCenterInnerPanel.setBackground(ColorStore.BACKGROUND_DARK);
+		for (JComponent component : componentToSet.getComponentsCenter()) {
+			menuCenterInnerPanel.add(component, BorderLayout.SOUTH);
+		}
+		menuCenterPanel.add(menuCenterInnerPanel, BorderLayout.SOUTH);
+		for (JButton button : componentToSet.getButtonsRight()) {
+			menuRightPanel.add(button);
+		}
 
-    public void setBackgroundColor(Color c) {
-        viewContentPanel.setBackground(c);
-    }
+		GridBagConstraints constraints = new GridBagConstraints();
+		constraints.weightx = 1;
+		constraints.weighty = 1;
+		constraints.gridx = 0;
+		constraints.gridy = 0;
+		constraints.gridwidth = 1;
+		constraints.fill = GridBagConstraints.BOTH;
+		constraints.anchor = GridBagConstraints.PAGE_START;
+		constraints.ipadx = 0;
+		constraints.ipady = 0;
+		JComponent c = componentToSet.initializeViewComponent(firstInitialization);
+		c.setBackground(ColorStore.BACKGROUND_LIGHT);
+		viewContentPanel.add(c, constraints);
+
+		repaint();
+		revalidate();
+	}
+
+	public Dimension getContentViewSize() {
+		return viewContentPanel.getSize();
+	}
+
+	public void setBackgroundColor(Color c) {
+		viewContentPanel.setBackground(c);
+	}
 }
