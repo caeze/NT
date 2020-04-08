@@ -1,10 +1,8 @@
 package view;
 
-import java.awt.Desktop;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -23,7 +21,6 @@ import model.Course;
 import model.MissingAObject;
 import model.Model;
 import model.Room;
-import preferences.Preferences;
 import view.itf.IViewComponent;
 import view.itf.TableAction;
 import view.l10n.L10n;
@@ -41,8 +38,10 @@ import view.util.LabelUtil;
 public class CoursesList implements IViewComponent {
 
 	private RoomEditor re;
+	private RoomsList rl;
 	private TableAction classEditorAction;
 	private TableAction removeItemAction;
+	private TableAction selectRoomAction;
 	private GenericTable<Course> coursesTable;
 	private JPanel retComponent;
 
@@ -78,29 +77,13 @@ public class CoursesList implements IViewComponent {
 	@Override
 	public List<JComponent> getComponentsCenter() {
 		List<JComponent> retList = new ArrayList<>();
-		JButton icon = ButtonUtil.createButton(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					if (Desktop.isDesktopSupported()) {
-						String s = Preferences.getInstance().projectLocation;
-						Desktop.getDesktop().browse(new URI(s.substring(0, s.lastIndexOf("/") + 1)));
-					}
-				} catch (Exception e) {
-					Log.error(CoursesList.class, e.getMessage());
-				}
-			}
-		}, "logo.png", 48, 48);
-		icon.setSelected(true);
-		retList.add(icon);
+		retList.add(View.getInstance().getLogoButtonForTopCenter());
 		return retList;
 	}
 
 	@Override
 	public List<JButton> getButtonsRight() {
 		List<JButton> retList = new ArrayList<>();
-		retList.add(ButtonUtil.createButton("empty.png", 40, 40));
-		retList.add(ButtonUtil.createButton("empty.png", 40, 40));
 		JButton exitButton = ButtonUtil.createButton(new Runnable() {
 			@Override
 			public void run() {
@@ -131,15 +114,20 @@ public class CoursesList implements IViewComponent {
 		constraints.ipady = 0;
 
 		List<String> columnNames = new ArrayList<>();
-		columnNames.addAll(Arrays.asList(L10n.getString("uuid"), L10n.getString("subject"), L10n.getString("grade"), L10n.getString("letter"), L10n.getString("room"), L10n.getString("students"), L10n.getString("studentOnTableMapping"), L10n.getString("comment")));
+		columnNames.addAll(Arrays.asList(L10n.getString("uuid"), L10n.getString("subject"), L10n.getString("grade"), L10n.getString("letter"), L10n.getString("room"), L10n.getString("studentOnTableMapping"), L10n.getString("comment")));
 		List<Class<?>> columnClasses = new Course().getMembersTypes();
 		List<Method> columnGetters = new Course().getGetters();
 		List<Method> columnSetters = new Course().getSetters();
-		List<Integer> editableColumns = Arrays.asList(1, 2, 3, 7);
+		List<Integer> editableColumns = Arrays.asList(1, 2, 3, 6);
 		classEditorAction = new TableAction("edit.png", "") {
 			@Override
 			public void run() {
-				re = new RoomEditor(RoomEditor.Action.EDIT_STUDENTS, ((Room) getRowObject()).getTables());
+				if (((Course) getRowObject()).getRoom() instanceof MissingAObject) {
+					GenericDialog dialog = new GenericDialog(L10n.getString("roomNotSetYet"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("pleaseSelectRoomFirst")))), true);
+					dialog.show();
+					return;
+				}
+				re = new RoomEditor(RoomEditor.Action.EDIT_STUDENTS, Model.getInstance().expandLazyAObject(((Course) getRowObject()).getRoom()).getTables(), ((Course) getRowObject()).getStudentOnTableMapping());
 				View.getInstance().pushViewComponent(re);
 			}
 		};
@@ -164,12 +152,20 @@ public class CoursesList implements IViewComponent {
 				}
 			}
 		};
+		selectRoomAction = new TableAction("edit.png", "") {
+			@Override
+			public void run() {
+				Log.debug(CoursesList.class, "selectedObject=" + getRowObject().getUuid());
+
+				rl = new RoomsList(RoomsList.Action.SELECT_ROOM);
+				View.getInstance().pushViewComponent(rl);
+			}
+		};
 		Map<Integer, TableAction> actions = new HashMap<>();
-		actions.put(8, classEditorAction);
-		actions.put(9, removeItemAction);
-		columnNames.add(L10n.getString("edit"));
+		actions.put(4, selectRoomAction);
+		actions.put(5, classEditorAction);
+		actions.put(7, removeItemAction);
 		columnNames.add(L10n.getString("remove"));
-		columnClasses.add(Object.class);
 		columnClasses.add(Object.class);
 		coursesTable = new GenericTable<>(Model.getInstance().getAllCourses(), columnNames, columnClasses, columnGetters, columnSetters, editableColumns, actions);
 
@@ -186,8 +182,16 @@ public class CoursesList implements IViewComponent {
 	public void resultFromLastViewComponent(IViewComponent component, Result result) {
 		if (component.equals(re)) {
 			if (Result.SAVE.equals(result)) {
-				Room rowObject = (Room) classEditorAction.getRowObject();
-				rowObject.setTables(re.getTables());
+				Course rowObject = (Course) classEditorAction.getRowObject();
+				rowObject.setStudentOnTableMapping(re.getStudentOnTableMapping());
+				Model.getInstance().replaceAObject(rowObject.getUuid(), rowObject);
+				coursesTable.fireTableDataChanged();
+			} else if (Result.CANCEL.equals(result)) {
+			}
+		} else if (component.equals(rl)) {
+			if (Result.SAVE.equals(result)) {
+				Course rowObject = (Course) selectRoomAction.getRowObject();
+				rowObject.setRoom(Model.getInstance().compressToLazyAObject(rl.getSelectedRoom()));
 				coursesTable.fireTableDataChanged();
 			} else if (Result.CANCEL.equals(result)) {
 			}

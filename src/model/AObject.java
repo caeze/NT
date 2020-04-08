@@ -5,12 +5,13 @@ import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import java.util.zip.GZIPInputStream;
@@ -35,6 +36,10 @@ public abstract class AObject {
 	public abstract UUID getUuid();
 
 	public abstract void setUuid(UUID uuid);
+
+	public String getStringRepresentation() {
+		return toString();
+	}
 
 	/**
 	 * Get an ordered list of members of this object. The members have to be named
@@ -76,9 +81,39 @@ public abstract class AObject {
 	public List<String> getMemberNamesWithoutNumbers() {
 		List<String> retList = new ArrayList<>();
 		for (Field f : getMembers()) {
-			retList.add(removeNumbers(f.getName()));
+			retList.add(removeNumber(f.getName()));
 		}
 		return retList;
+	}
+
+	/**
+	 * Get a field from its name.
+	 * 
+	 * @return field corresponding to the name
+	 */
+	public Field getMemberFieldFromName(String name) {
+		name = removeNumber(name);
+		for (Field f : getMembers()) {
+			if (removeNumber(f.getName()).contains(name)) {
+				return f;
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Get the number of a member field from its name.
+	 * 
+	 * @return the number of a member field from its name
+	 */
+	public int getNumberOfMember(String name) {
+		List<String> memberNames = getMemberNamesWithoutNumbers();
+		for (int i = 0; i < memberNames.size(); i++) {
+			if (memberNames.get(i).equals(name)) {
+				return i;
+			}
+		}
+		return -1;
 	}
 
 	/**
@@ -133,7 +168,7 @@ public abstract class AObject {
 	}
 
 	private Method getAccessMethod(String toAddOnFront, String str) {
-		str = removeNumbers(str);
+		str = removeNumber(str);
 		String methodName = toAddOnFront + str.substring(0, 1).toUpperCase() + str.substring(1);
 		try {
 			if ("set".equals(toAddOnFront)) {
@@ -150,7 +185,7 @@ public abstract class AObject {
 		return null;
 	}
 
-	private String removeNumbers(String str) {
+	private String removeNumber(String str) {
 		return str.replaceAll("_.*_", "");
 	}
 
@@ -193,8 +228,10 @@ public abstract class AObject {
 					objToReturn.put(memberNames.get(i), getter.invoke(this));
 				} else if (isUuid(members.get(i).getType())) {
 					objToReturn.put(memberNames.get(i), getter.invoke(this).toString());
-				} else if (isDate(members.get(i).getType())) {
-					objToReturn.put(memberNames.get(i), NT.SDF_FOR_PERSISTING.format(getter.invoke(this)));
+				} else if (isLocalDate(members.get(i).getType())) {
+					objToReturn.put(memberNames.get(i), NT.DF_FOR_PERSISTING_DATE.format((LocalDate) getter.invoke(this)));
+				} else if (isLocalDateTime(members.get(i).getType())) {
+					objToReturn.put(memberNames.get(i), NT.DF_FOR_PERSISTING_DATE_TIME.format((LocalDateTime) getter.invoke(this)));
 				} else if (isDouble(members.get(i).getType())) {
 					objToReturn.put(memberNames.get(i), getter.invoke(this));
 				} else if (isInteger(members.get(i).getType())) {
@@ -274,8 +311,12 @@ public abstract class AObject {
 					setter.invoke(this, jsonObject.get(memberNames.get(i)));
 				} else if (isUuid(members.get(i).getType())) {
 					setter.invoke(this, UUID.fromString((String) jsonObject.get(memberNames.get(i))));
-				} else if (isDate(members.get(i).getType())) {
-					setter.invoke(this, NT.SDF_FOR_PERSISTING.parse((String) jsonObject.get(memberNames.get(i))));
+				} else if (isLocalDate(members.get(i).getType())) {
+					LocalDate ld = LocalDate.parse((String) jsonObject.get(memberNames.get(i)), NT.DF_FOR_PERSISTING_DATE);
+					setter.invoke(this, ld);
+				} else if (isLocalDateTime(members.get(i).getType())) {
+					LocalDateTime ldt = LocalDateTime.parse((String) jsonObject.get(memberNames.get(i)), NT.DF_FOR_PERSISTING_DATE_TIME);
+					setter.invoke(this, ldt);
 				} else if (isDouble(members.get(i).getType())) {
 					setter.invoke(this, jsonObject.get(memberNames.get(i)));
 				} else if (isInteger(members.get(i).getType())) {
@@ -374,12 +415,20 @@ public abstract class AObject {
 		return obj != null && obj instanceof UUID;
 	}
 
-	public static boolean isDate(Object obj) {
+	public static boolean isLocalDate(Object obj) {
 		if (obj != null && obj instanceof Class) {
 			Class<?> c = (Class<?>) obj;
-			return c.getName().equals(Date.class.getName());
+			return c.getName().equals(LocalDate.class.getName());
 		}
-		return obj != null && obj instanceof Date;
+		return obj != null && obj instanceof LocalDate;
+	}
+
+	public static boolean isLocalDateTime(Object obj) {
+		if (obj != null && obj instanceof Class) {
+			Class<?> c = (Class<?>) obj;
+			return c.getName().equals(LocalDateTime.class.getName());
+		}
+		return obj != null && obj instanceof LocalDateTime;
 	}
 
 	public static boolean isDouble(Object obj) {

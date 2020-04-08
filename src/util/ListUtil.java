@@ -1,5 +1,6 @@
 package util;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -17,6 +18,7 @@ import console.Log;
  */
 public class ListUtil<T> {
 
+	@SuppressWarnings("unchecked")
 	public List<T> makeDeepCopy(List<T> list) {
 		List<T> retList = new ArrayList<>();
 		if (list.isEmpty()) {
@@ -74,5 +76,39 @@ public class ListUtil<T> {
 			}
 		}
 		return retList;
+	}
+
+	public List<T> returnContainedInBoth(List<T> list1, List<T> list2) {
+		List<T> retList = new ArrayList<>();
+		for (T obj : list1) {
+			if (list2.contains(obj)) {
+				if (!retList.contains(obj)) {
+					retList.add(obj);
+				}
+			}
+		}
+		return retList;
+	}
+
+	@SuppressWarnings("unchecked")
+	public T[] listToArray(List<T> listOfLists, Class<T> c) {
+		int[] sizes = { listOfLists.size() };
+		T[] retArray = (T[]) Array.newInstance(c, sizes);
+		for (int i = 0; i < sizes[0]; i++) {
+			retArray[i] = listOfLists.get(i);
+		}
+		return retArray;
+	}
+
+	@SuppressWarnings("unchecked")
+	public T[][] listOfListsToArrayOfArrays(List<List<T>> listOfLists, Class<T> c) {
+		int[] sizes = { listOfLists.size(), listOfLists.get(0).size() };
+		T[][] retArray = (T[][]) Array.newInstance(c, sizes);
+		for (int i = 0; i < sizes[0]; i++) {
+			for (int j = 0; j < sizes[1]; j++) {
+				retArray[i][j] = listOfLists.get(i).get(j);
+			}
+		}
+		return retArray;
 	}
 }

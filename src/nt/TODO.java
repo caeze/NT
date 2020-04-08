@@ -8,6 +8,15 @@ package nt;
  */
 public class TODO {
 	/**
+	 * wann änderungen gemacht wurden nicht mehr nach speicherort fragen globale
+	 * hotkeys rückwärts vorwärt strg z und strg y
+	 * 
+	 * check for update
+	 * 
+	 * vornamen liste deutsch einbinden daten mit zwei punkten oder zwei / oder zwei
+	 * - sind datums lange nummern liste ist telefonnummber mit @ ist email
+	 * 
+	 * 
 	 * alle datenklassen durchgehen, ob da ein name oder logikfehler ist
 	 * 
 	 * für alle datenklassen unit tests schreiben
@@ -20,20 +29,6 @@ public class TODO {
 	 * 
 	 * unit test AObject
 	 * 
-	 * table must be sortable table must be searchable (ein und ausblenden)
-	 * 
-	 * table must display data according to data type
-	 * 
-	 * table must be editable for strings, dates,
-	 * 
-	 * english simpledateformat globally for e.g. english, other languages
-	 * 
-	 * button in jtable
-	 * 
-	 * ale a objects müssen copy constructor implementieren
-	 * 
 	 * excel tabelle einlesen für schüler
-	 * 
-	 * Generic dialog icon setzen
 	 */
 }

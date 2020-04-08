@@ -1,5 +1,6 @@
 package console;
 
+import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -7,17 +8,23 @@ import java.awt.event.ActionListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.util.Arrays;
 
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JToggleButton;
+import javax.swing.SwingUtilities;
 
 import view.img.ImageStore;
+import view.l10n.L10n;
+import view.util.GenericDialog;
+import view.util.LabelUtil;
 
 /**
  * Console window.
@@ -27,7 +34,7 @@ import view.img.ImageStore;
  */
 public class StdOutErrSwingConsole extends JFrame {
 
-	private PrintOutErrStream printOutErrStream;
+	private PrintOutErrStream printOutStream;
 	private JScrollPane consoleScrollPane;
 	private JTextArea consoleTextArea;
 	private JToggleButton toggleScrollToBottomButton;
@@ -37,9 +44,9 @@ public class StdOutErrSwingConsole extends JFrame {
 	private StdOutErrSwingConsole(String name) {
 		super(name);
 		init();
-		printOutErrStream = new PrintOutErrStream(this.consoleTextArea);
-		System.setErr(new PrintStream(printOutErrStream, true));
-		System.setOut(new PrintStream(printOutErrStream, true));
+		printOutStream = new PrintOutErrStream(this.consoleTextArea);
+		System.setErr(new PrintStream(printOutStream, true));
+		System.setOut(new PrintStream(printOutStream, true));
 		setDefaultCloseOperation(JFrame.HIDE_ON_CLOSE);
 		setVisible(true);
 		setBounds(20, 20, 900, 600);
@@ -67,10 +74,11 @@ public class StdOutErrSwingConsole extends JFrame {
 		consoleTextArea = new JTextArea();
 		consoleTextArea.setColumns(20);
 		consoleTextArea.setRows(5);
+		Font font = new Font("Monospaced", consoleTextArea.getFont().getStyle(), consoleTextArea.getFont().getSize());
+		consoleTextArea.setFont(font);
 		consoleTextArea.setEditable(false);
 
-		consoleScrollPane = new JScrollPane();
-		consoleScrollPane.setViewportView(consoleTextArea);
+		consoleScrollPane = new JScrollPane(consoleTextArea);
 
 		constraints.gridx = 0;
 		constraints.gridy = 0;
@@ -85,7 +93,7 @@ public class StdOutErrSwingConsole extends JFrame {
 		clearButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				printOutErrStream.clear();
+				printOutStream.clear();
 			}
 		});
 
@@ -144,6 +152,13 @@ public class StdOutErrSwingConsole extends JFrame {
 					textArea.replaceRange("", 0, 1000);
 				}
 				textArea.append(outputStr);
+				if (outputStr.toLowerCase().contains("exception") || outputStr.toLowerCase().contains("error")) {
+					SwingUtilities.invokeLater(new Runnable() {
+						public void run() {
+							new GenericDialog(L10n.getString("error"), Arrays.asList(new JLabel(LabelUtil.styleLabel(outputStr)))).show();
+						}
+					});
+				}
 				if (toggleScrollToBottomButton.isSelected()) {
 					JScrollBar vertical = consoleScrollPane.getVerticalScrollBar();
 					vertical.setValue(vertical.getMaximum() + 500);

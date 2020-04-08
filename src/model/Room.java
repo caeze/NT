@@ -114,4 +114,10 @@ public class Room extends AObject {
 	public String toString() {
 		return "Room [uuid=" + _001_uuid + ", name=" + _002_name + ", tables=" + _003_tables + ", comment=" + _004_comment + "]";
 	}
+
+	@Override
+	public String getStringRepresentation() {
+		return _002_name;
+	}
+	
 }

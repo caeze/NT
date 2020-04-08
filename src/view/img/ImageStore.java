@@ -151,7 +151,7 @@ public class ImageStore {
 	public static BufferedImage createRGBImage(byte[] bytes, int width, int height) {
 		DataBufferByte buffer = new DataBufferByte(bytes, bytes.length);
 		ColorModel cm = new ComponentColorModel(ColorSpace.getInstance(ColorSpace.CS_sRGB), new int[] { 8, 8, 8 }, false, false, Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
-		return new BufferedImage(cm, Raster.createInterleavedRaster(buffer, width, height, width * 3, 3, new int[] { 0, 1, 2 }, null), false, null);
+		return new BufferedImage(cm, Raster.createInterleavedRaster(buffer, width, height, width * 3, 3, new int[] { 2, 1, 0 }, null), false, null);
 	}
 
 	public static byte[] getBytesFromImage(ImageIcon imageIcon) {

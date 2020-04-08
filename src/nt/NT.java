@@ -1,13 +1,12 @@
 package nt;
 
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
 import console.Log;
 import control.Control;
-import preferences.Preferences;
-import test.TestSuite;
 import view.util.LoadingAnimation;
 import view.util.SplashScreenUtil;
 
@@ -27,12 +26,18 @@ public class NT {
 	public static String VERSION = "0.0.1";
 	public static boolean IS_DEBUG = true;
 	public static OperatingSystem OS = OperatingSystem.WINDOWS;
-	public static int STUDENT_IMAGE_WIDTH = 32;
-	public static int STUDENT_IMAGE_HEIGHT = 32;
-	public static final SimpleDateFormat SDF_FOR_PERSISTING = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-	public static final SimpleDateFormat SDF_FOR_DISPLAYING_DATE_ONLY = new SimpleDateFormat("dd.MM.yyyy");
-	public static final SimpleDateFormat SDF_FOR_DISPLAYING_TIME_ONLY = new SimpleDateFormat("HH:mm:ss");
-	public static final SimpleDateFormat SDF_FOR_DISPLAYING_DATE_AND_TIME = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
+	public static int STUDENT_IMAGE_WIDTH = 48;
+	public static int STUDENT_IMAGE_HEIGHT = 48;
+	public static final String FORMAT_FOR_PERSISTING_DATE = "yyyy-MM-dd";
+	public static final String FORMAT_FOR_PERSISTING_DATE_TIME = "yyyy-MM-dd HH:mm:ss.SSS";
+	public static final String FORMAT_FOR_DISPLAYING_DATE = "dd.MM.yyyy";
+	public static final String FORMAT_FOR_DISPLAYING_TIME = "HH:mm:ss";
+	public static final String FORMAT_FOR_DISPLAYING_DATE_TIME = "dd.MM.yyyy HH:mm:ss";
+	public static final DateTimeFormatter DF_FOR_PERSISTING_DATE = DateTimeFormatter.ofPattern(FORMAT_FOR_PERSISTING_DATE);
+	public static final DateTimeFormatter DF_FOR_PERSISTING_DATE_TIME = DateTimeFormatter.ofPattern(FORMAT_FOR_PERSISTING_DATE_TIME);
+	public static final DateTimeFormatter DF_FOR_DISPLAYING_DATE = DateTimeFormatter.ofPattern(FORMAT_FOR_DISPLAYING_DATE);
+	public static final DateTimeFormatter DF_FOR_DISPLAYING_TIME = DateTimeFormatter.ofPattern(FORMAT_FOR_DISPLAYING_TIME);
+	public static final DateTimeFormatter DF_FOR_DISPLAYING_DATE_TIME = DateTimeFormatter.ofPattern(FORMAT_FOR_DISPLAYING_DATE_TIME);
 
 	/**
 	 * Main entry point of the application.
@@ -47,27 +52,26 @@ public class NT {
 		setLookAndFeel();
 
 		// show a splash screen
-		// SplashScreenUtil.showSplashScreen("NTLogo.png");
-		// LoadingAnimation.showLoadingAnim();
-
-		// run unit tests, but only if in debug mode
-		if (IS_DEBUG) {
-			Preferences.getInstance().logLevel = Log.LOG_LEVEL_DEBUG;
-			if (!TestSuite.startTests()) {
-				Log.error(NT.class, "Unit tests not successful! Aborting!");
-				return;
-			} else {
-				Log.debug(NT.class, "Unit tests successful.");
-			}
-		} else {
-			Log.info(NT.class, "Debug mode off, unit tests not run.");
-		}
+		SplashScreenUtil.showSplashScreen("NTLogo.png");
+		LoadingAnimation.showLoadingAnim();
 
 		new Thread(new Runnable() {
 			@Override
 			public void run() {
+				if (!IS_DEBUG) {
+					try {
+						Thread.sleep(1000);
+					} catch (InterruptedException e) {
+						Log.error(NT.class, "Error on delaying start to show splash screen! " + e.getMessage());
+					}
+				}
+
 				// set up the program and configuration and start
-				Control.getInstance().init();
+				SwingUtilities.invokeLater(new Runnable() {
+					public void run() {
+						Control.getInstance().init();
+					}
+				});
 
 				// kill splash screen
 				SplashScreenUtil.killSplashScreen();

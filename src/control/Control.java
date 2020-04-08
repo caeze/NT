@@ -14,6 +14,7 @@ import model.Model;
 import model.Project;
 import nt.NT;
 import preferences.Preferences;
+import test.TestSuite;
 import view.StartMenu;
 import view.View;
 import view.l10n.L10n;
@@ -55,6 +56,25 @@ public class Control {
 		if (Preferences.getInstance().showConsole) {
 			StdOutErrSwingConsole.getInstance(L10n.getString("NT"));
 		}
+
+		// run unit tests, but only if in debug mode
+		if (NT.IS_DEBUG) {
+			new Thread(new Runnable() {
+				@Override
+				public void run() {
+					Preferences.getInstance().logLevel = Log.LOG_LEVEL_DEBUG;
+					if (!TestSuite.startTests()) {
+						Log.error(NT.class, "Unit tests not successful! Aborting!");
+						return;
+					} else {
+						Log.debug(NT.class, "Unit tests successful.");
+					}
+				}
+			}).start();
+		} else {
+			Log.info(NT.class, "Debug mode off, unit tests not run.");
+		}
+
 		View.getInstance().pushViewComponent(new StartMenu());
 	}
 
@@ -68,6 +88,7 @@ public class Control {
 			Preferences.getInstance().persist();
 			String content = Model.getInstance().getCurrentProject().toJsonString();
 			FileHandlingUtil.getInstance().writeStringToFile(path, content);
+			Model.getInstance().resetLastSavedProject();
 			return true;
 		}
 		return false;
@@ -158,6 +179,8 @@ public class Control {
 		String projectJsonString = FileHandlingUtil.getInstance().readFileAsString(projectPath);
 		Project project = (Project) new Project().fillFromJsonString(projectJsonString);
 		Model.getInstance().setCurrentProject(project);
+		Model.getInstance().resetLastSavedProject();
+		Model.getInstance().resetUndoStack();
 	}
 
 	public boolean loadEmptyProject() {

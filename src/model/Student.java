@@ -1,7 +1,7 @@
 package model;
 
 import java.util.Arrays;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 /**
@@ -15,7 +15,7 @@ public class Student extends AObject {
 	private UUID _001_uuid;
 	private String _002_firstName;
 	private String _003_lastName;
-	private Date _004_dateOfBirth;
+	private LocalDate _004_dateOfBirth;
 	private String _005_email;
 	private String _006_mobilePhone;
 	private String _007_comment;
@@ -24,7 +24,7 @@ public class Student extends AObject {
 	public Student() {
 	}
 
-	public Student(UUID uuid, String firstName, String lastName, Date dateOfBirth, String email, String mobilePhone, String comment, byte[] image) {
+	public Student(UUID uuid, String firstName, String lastName, LocalDate dateOfBirth, String email, String mobilePhone, String comment, byte[] image) {
 		this._001_uuid = uuid;
 		this._002_firstName = firstName;
 		this._003_lastName = lastName;
@@ -71,11 +71,11 @@ public class Student extends AObject {
 		this._003_lastName = lastName;
 	}
 
-	public Date getDateOfBirth() {
+	public LocalDate getDateOfBirth() {
 		return _004_dateOfBirth;
 	}
 
-	public void setDateOfBirth(Date dateOfBirth) {
+	public void setDateOfBirth(LocalDate dateOfBirth) {
 		this._004_dateOfBirth = dateOfBirth;
 	}
 

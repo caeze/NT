@@ -59,8 +59,6 @@ public class LazyAObject<T> extends AObject {
 
 	@Override
 	public String toString() {
-		@SuppressWarnings("unchecked")
-		Class<T> genericClass = (Class<T>) ((AObject) getClass().getGenericSuperclass()).getClass();
-		return "LazyAObject<" + genericClass.getSimpleName() +  "> [_001_uuid=" + _001_uuid + "]";
+		return "LazyAObject<T> [_001_uuid=" + _001_uuid + "]";
 	}
 }

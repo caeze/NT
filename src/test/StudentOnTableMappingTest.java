@@ -3,7 +3,10 @@ package test;
 import java.lang.reflect.Constructor;
 import java.util.UUID;
 
+import model.LazyAObject;
+import model.Student;
 import model.StudentOnTableMapping;
+import model.Table;
 
 /**
  * Test class for {@link model.StudentOnTableMapping}.
@@ -15,7 +18,7 @@ public class StudentOnTableMappingTest implements Testable {
 
 	public boolean jsonTest() {
 		// prepare data
-		StudentOnTableMapping sotm = new StudentOnTableMapping(UUID.randomUUID(), UUID.randomUUID(), UUID.randomUUID());
+		StudentOnTableMapping sotm = new StudentOnTableMapping(UUID.randomUUID(), new LazyAObject<Student>(UUID.randomUUID()), new LazyAObject<Table>(UUID.randomUUID()), 2);
 
 		// execute tests
 		String sotmData = sotm.toJsonString();

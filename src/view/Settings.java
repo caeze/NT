@@ -1,8 +1,6 @@
 package view;
 
-import java.awt.Desktop;
 import java.awt.GridLayout;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -13,7 +11,6 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import console.Log;
 import control.Control;
 import preferences.Preferences;
 import view.itf.IViewComponent;
@@ -46,21 +43,7 @@ public class Settings implements IViewComponent {
 	@Override
 	public List<JComponent> getComponentsCenter() {
 		List<JComponent> retList = new ArrayList<>();
-		JButton icon = ButtonUtil.createButton(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					if (Desktop.isDesktopSupported()) {
-						String s = Preferences.getInstance().projectLocation;
-						Desktop.getDesktop().browse(new URI(s.substring(0, s.lastIndexOf("/") + 1)));
-					}
-				} catch (Exception e) {
-					Log.error(Settings.class, e.getMessage());
-				}
-			}
-		}, "logo.png", 48, 48);
-		icon.setSelected(true);
-		retList.add(icon);
+		retList.add(View.getInstance().getLogoButtonForTopCenter());
 		return retList;
 	}
 

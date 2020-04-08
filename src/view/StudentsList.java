@@ -1,14 +1,12 @@
 package view;
 
-import java.awt.Desktop;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.io.File;
 import java.lang.reflect.Method;
-import java.net.URI;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +24,6 @@ import filehandling.FileHandlingUtil;
 import model.Model;
 import model.Student;
 import nt.NT;
-import preferences.Preferences;
 import view.img.ImageStore;
 import view.itf.IViewComponent;
 import view.itf.TableAction;
@@ -44,17 +41,21 @@ import view.util.LabelUtil;
  */
 public class StudentsList implements IViewComponent {
 
+	public enum Action {
+		EDIT_STUDENTS, SELECT_STUDENT
+	}
+
 	private ImageChooser ic;
 	private TableAction changeImageAction;
 	private TableAction removeItemAction;
 	private TableAction selectItemAction;
 	private GenericTable<Student> studentsTable;
 	private JPanel retComponent;
-	private boolean forSelectionOnly;
 	private Student selectedStudent = null;
+	private Action action;
 
-	public StudentsList(boolean forSelectionOnly) {
-		this.forSelectionOnly = forSelectionOnly;
+	public StudentsList(Action action) {
+		this.action = action;
 	}
 
 	@Override
@@ -67,7 +68,7 @@ public class StudentsList implements IViewComponent {
 			}
 		}, "back.png", 40, 40, L10n.getString("back"));
 		retList.add(backButton);
-		if (!forSelectionOnly) {
+		if (action.equals(Action.EDIT_STUDENTS)) {
 			JButton doneButton = ButtonUtil.createButton(new Runnable() {
 				@Override
 				public void run() {
@@ -79,7 +80,7 @@ public class StudentsList implements IViewComponent {
 				@Override
 				public void run() {
 					byte[] bytes = ImageStore.getBytesFromImage(ImageStore.getScaledImage(ImageStore.getImageIcon(""), NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT));
-					Student student = new Student(UUID.randomUUID(), "", "", new Date(), "", "", "", bytes);
+					Student student = new Student(UUID.randomUUID(), "", "", LocalDate.now(), "", "", "", bytes);
 					Model.getInstance().addStudent(student);
 					studentsTable.fireTableDataChanged();
 				}
@@ -92,28 +93,14 @@ public class StudentsList implements IViewComponent {
 	@Override
 	public List<JComponent> getComponentsCenter() {
 		List<JComponent> retList = new ArrayList<>();
-		JButton icon = ButtonUtil.createButton(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					if (Desktop.isDesktopSupported()) {
-						String s = Preferences.getInstance().projectLocation;
-						Desktop.getDesktop().browse(new URI(s.substring(0, s.lastIndexOf("/") + 1)));
-					}
-				} catch (Exception e) {
-					Log.error(StudentsList.class, e.getMessage());
-				}
-			}
-		}, "logo.png", 48, 48);
-		icon.setSelected(true);
-		retList.add(icon);
+		retList.add(View.getInstance().getLogoButtonForTopCenter());
 		return retList;
 	}
 
 	@Override
 	public List<JButton> getButtonsRight() {
 		List<JButton> retList = new ArrayList<>();
-		if (!forSelectionOnly) {
+		if (action.equals(Action.EDIT_STUDENTS)) {
 			retList.add(ButtonUtil.createButton("empty.png", 40, 40));
 			retList.add(ButtonUtil.createButton("empty.png", 40, 40));
 		}
@@ -195,7 +182,7 @@ public class StudentsList implements IViewComponent {
 			}
 		};
 		Map<Integer, TableAction> actions = new HashMap<>();
-		if (!forSelectionOnly) {
+		if (action.equals(Action.EDIT_STUDENTS)) {
 			editableColumns.addAll(Arrays.asList(1, 2, 3, 4, 5, 6));
 			actions.put(7, changeImageAction);
 			actions.put(8, removeItemAction);

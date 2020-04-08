@@ -1,10 +1,8 @@
 package view;
 
-import java.awt.Desktop;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.lang.reflect.Method;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -19,9 +17,11 @@ import javax.swing.JPanel;
 
 import console.Log;
 import control.Control;
+import model.Course;
 import model.Model;
 import model.Room;
-import preferences.Preferences;
+import model.StudentOnTableMapping;
+import model.Table;
 import view.itf.IViewComponent;
 import view.itf.TableAction;
 import view.l10n.L10n;
@@ -38,11 +38,23 @@ import view.util.LabelUtil;
  */
 public class RoomsList implements IViewComponent {
 
+	public enum Action {
+		EDIT_ROOMS, SELECT_ROOM
+	}
+
 	private RoomEditor re;
 	private TableAction classEditorAction;
 	private TableAction removeItemAction;
+	private TableAction selectItemAction;
 	private GenericTable<Room> roomsTable;
 	private JPanel retComponent;
+	private Room selectedRoom = null;
+
+	private Action action;
+
+	public RoomsList(Action action) {
+		this.action = action;
+	}
 
 	@Override
 	public List<JButton> getButtonsLeft() {
@@ -54,51 +66,41 @@ public class RoomsList implements IViewComponent {
 			}
 		}, "back.png", 40, 40, L10n.getString("back"));
 		retList.add(backButton);
-		JButton doneButton = ButtonUtil.createButton(new Runnable() {
-			@Override
-			public void run() {
-				View.getInstance().popViewComponent(IViewComponent.Result.SAVE);
-			}
-		}, "done.png", 40, 40, L10n.getString("done"));
-		retList.add(doneButton);
-		JButton addButton = ButtonUtil.createButton(new Runnable() {
-			@Override
-			public void run() {
-				Room room = new Room(UUID.randomUUID(), "", new ArrayList<>(), "");
-				Model.getInstance().addRoom(room);
-				roomsTable.fireTableDataChanged();
-			}
-		}, "add.png", 40, 40, L10n.getString("add"));
-		retList.add(addButton);
+		if (action.equals(Action.EDIT_ROOMS)) {
+			JButton doneButton = ButtonUtil.createButton(new Runnable() {
+				@Override
+				public void run() {
+					View.getInstance().popViewComponent(IViewComponent.Result.SAVE);
+				}
+			}, "done.png", 40, 40, L10n.getString("done"));
+			retList.add(doneButton);
+			JButton addButton = ButtonUtil.createButton(new Runnable() {
+				@Override
+				public void run() {
+					Room room = new Room(UUID.randomUUID(), "", new ArrayList<>(), "");
+					Model.getInstance().addRoom(room);
+					roomsTable.fireTableDataChanged();
+				}
+			}, "add.png", 40, 40, L10n.getString("add"));
+			retList.add(addButton);
+		}
 		return retList;
 	}
 
 	@Override
 	public List<JComponent> getComponentsCenter() {
 		List<JComponent> retList = new ArrayList<>();
-		JButton icon = ButtonUtil.createButton(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					if (Desktop.isDesktopSupported()) {
-						String s = Preferences.getInstance().projectLocation;
-						Desktop.getDesktop().browse(new URI(s.substring(0, s.lastIndexOf("/") + 1)));
-					}
-				} catch (Exception e) {
-					Log.error(RoomsList.class, e.getMessage());
-				}
-			}
-		}, "logo.png", 48, 48);
-		icon.setSelected(true);
-		retList.add(icon);
+		retList.add(View.getInstance().getLogoButtonForTopCenter());
 		return retList;
 	}
 
 	@Override
 	public List<JButton> getButtonsRight() {
 		List<JButton> retList = new ArrayList<>();
-		retList.add(ButtonUtil.createButton("empty.png", 40, 40));
-		retList.add(ButtonUtil.createButton("empty.png", 40, 40));
+		if (action.equals(Action.EDIT_ROOMS)) {
+			retList.add(ButtonUtil.createButton("empty.png", 40, 40));
+			retList.add(ButtonUtil.createButton("empty.png", 40, 40));
+		}
 		JButton exitButton = ButtonUtil.createButton(new Runnable() {
 			@Override
 			public void run() {
@@ -162,13 +164,28 @@ public class RoomsList implements IViewComponent {
 				}
 			}
 		};
+		selectItemAction = new TableAction("right.png", "") {
+			@Override
+			public void run() {
+				Log.debug(RoomsList.class, "selectItemAction, selectedObject=" + getRowObject().getUuid());
+
+				selectedRoom = (Room) getRowObject();
+				View.getInstance().popViewComponent(IViewComponent.Result.SAVE);
+			}
+		};
 		Map<Integer, TableAction> actions = new HashMap<>();
-		actions.put(4, classEditorAction);
-		actions.put(5, removeItemAction);
-		columnNames.add(L10n.getString("edit"));
-		columnNames.add(L10n.getString("remove"));
-		columnClasses.add(Object.class);
-		columnClasses.add(Object.class);
+		if (action.equals(Action.EDIT_ROOMS)) {
+			actions.put(4, classEditorAction);
+			actions.put(5, removeItemAction);
+			columnNames.add(L10n.getString("edit"));
+			columnNames.add(L10n.getString("remove"));
+			columnClasses.add(Object.class);
+			columnClasses.add(Object.class);
+		} else {
+			actions.put(4, selectItemAction);
+			columnNames.add(L10n.getString("select"));
+			columnClasses.add(Object.class);
+		}
 		roomsTable = new GenericTable<>(Model.getInstance().getAllRooms(), columnNames, columnClasses, columnGetters, columnSetters, editableColumns, actions);
 
 		retComponent.add(roomsTable, constraints);
@@ -186,9 +203,36 @@ public class RoomsList implements IViewComponent {
 			if (Result.SAVE.equals(result)) {
 				Room rowObject = (Room) classEditorAction.getRowObject();
 				rowObject.setTables(re.getTables());
+				correctStudentsOnTablesMapping();
 				roomsTable.fireTableDataChanged();
 			} else if (Result.CANCEL.equals(result)) {
 			}
 		}
+	}
+
+	private void correctStudentsOnTablesMapping() {
+		for (Course c : Model.getInstance().getAllCourses()) {
+			System.out.println(c);
+		}
+		List<UUID> allTablesUuids = new ArrayList<>();
+		for (Table t : Model.getInstance().getAllTables()) {
+			allTablesUuids.add(t.getUuid());
+		}
+		for (Course c : Model.getInstance().getAllCourses()) {
+			List<StudentOnTableMapping> mappingsToBeRemoved = new ArrayList<>();
+			for (StudentOnTableMapping sotm : c.getStudentOnTableMapping()) {
+				if (!allTablesUuids.contains(sotm.getTable().getUuid())) {
+					mappingsToBeRemoved.add(sotm);
+				}
+			}
+			c.getStudentOnTableMapping().removeAll(mappingsToBeRemoved);
+		}
+		for (Course c : Model.getInstance().getAllCourses()) {
+			System.out.println(c);
+		}
+	}
+
+	public Room getSelectedRoom() {
+		return selectedRoom;
 	}
 }

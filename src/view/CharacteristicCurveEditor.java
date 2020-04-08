@@ -1,6 +1,5 @@
 package view;
 
-import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
@@ -15,7 +14,6 @@ import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
 import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -30,11 +28,9 @@ import console.Log;
 import model.CharacteristicCurve;
 import model.GradeType;
 import model.RelativePoint;
-import preferences.Preferences;
 import util.ListUtil;
 import view.itf.IViewComponent;
 import view.l10n.L10n;
-import view.util.ButtonUtil;
 import view.util.ColorStore;
 import view.util.FloatingPointUtil;
 import view.util.Graphics2DUtil;
@@ -73,21 +69,7 @@ public class CharacteristicCurveEditor implements IViewComponent {
 	@Override
 	public List<JComponent> getComponentsCenter() {
 		List<JComponent> retList = new ArrayList<>();
-		JButton icon = ButtonUtil.createButton(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					if (Desktop.isDesktopSupported()) {
-						String s = Preferences.getInstance().projectLocation;
-						Desktop.getDesktop().browse(new URI(s.substring(0, s.lastIndexOf("/") + 1)));
-					}
-				} catch (Exception e) {
-					Log.error(CharacteristicCurveEditor.class, e.getMessage());
-				}
-			}
-		}, "logo.png", 48, 48);
-		icon.setSelected(true);
-		retList.add(icon);
+		retList.add(View.getInstance().getLogoButtonForTopCenter());
 		return retList;
 	}
 

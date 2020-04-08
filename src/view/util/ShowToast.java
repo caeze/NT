@@ -2,7 +2,8 @@ package view.util;
 
 import java.awt.Color;
 import java.awt.Dialog;
-import java.util.Date;
+import java.time.Duration;
+import java.time.LocalDateTime;
 
 import javax.swing.BorderFactory;
 import javax.swing.JLabel;
@@ -125,7 +126,7 @@ public class ShowToast {
 		});
 	}
 
-	public static long getMsDifferenceBetweenDates(Date d1, Date d2) {
-		return Math.abs(d2.getTime() - d1.getTime());
+	public static long getMsDifferenceBetweenDates(LocalDateTime ldt1, LocalDateTime ldt2) {
+		return Math.abs(Duration.between(ldt1, ldt2).toMillis());
 	}
 }

@@ -2,6 +2,7 @@ package view;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.GridBagConstraints;
@@ -9,6 +10,7 @@ import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -20,6 +22,8 @@ import javax.swing.JPanel;
 
 import console.Log;
 import control.Control;
+import model.Model;
+import preferences.Preferences;
 import view.img.ImageStore;
 import view.itf.IViewComponent;
 import view.l10n.L10n;
@@ -138,9 +142,10 @@ public class View extends JFrame {
 
 		if (!alreadyInitialized) {
 			alreadyInitialized = true;
-			setSize(800, 500);
+			setSize(900, 600);
 			setMinimumSize(getSize());
 			setLocationRelativeTo(null);
+			setExtendedState(JFrame.MAXIMIZED_BOTH);
 			setVisible(true);
 			pack();
 		}
@@ -156,6 +161,9 @@ public class View extends JFrame {
 	}
 
 	public IViewComponent popViewComponent(IViewComponent.Result action) {
+		if (IViewComponent.Result.SAVE.equals(action)) {
+			Model.getInstance().storeSnapshot();
+		}
 		if (viewComponentStack.size() < 2) {
 			Control.getInstance().exitProgram();
 		}
@@ -172,7 +180,15 @@ public class View extends JFrame {
 		menuRightPanel.removeAll();
 		viewContentPanel.removeAll();
 
-		for (JButton button : componentToSet.getButtonsLeft()) {
+		List<JButton> buttonsLeft = componentToSet.getButtonsLeft();
+		List<JButton> buttonsRight = componentToSet.getButtonsRight();
+		while (buttonsLeft.size() < buttonsRight.size()) {
+			buttonsLeft.add(ButtonUtil.createButton("empty.png", 40, 40));
+		}
+		while (buttonsLeft.size() > buttonsRight.size()) {
+			buttonsRight.add(0, ButtonUtil.createButton("empty.png", 40, 40));
+		}
+		for (JButton button : buttonsLeft) {
 			menuLeftPanel.add(button);
 		}
 		JPanel menuCenterInnerPanel = new JPanel();
@@ -182,7 +198,7 @@ public class View extends JFrame {
 			menuCenterInnerPanel.add(component, BorderLayout.SOUTH);
 		}
 		menuCenterPanel.add(menuCenterInnerPanel, BorderLayout.SOUTH);
-		for (JButton button : componentToSet.getButtonsRight()) {
+		for (JButton button : buttonsRight) {
 			menuRightPanel.add(button);
 		}
 
@@ -210,5 +226,23 @@ public class View extends JFrame {
 
 	public void setBackgroundColor(Color c) {
 		viewContentPanel.setBackground(c);
+	}
+
+	public JButton getLogoButtonForTopCenter() {
+		JButton iconButton = ButtonUtil.createButton(new Runnable() {
+			@Override
+			public void run() {
+				try {
+					if (Desktop.isDesktopSupported()) {
+						String s = Preferences.getInstance().projectLocation;
+						Desktop.getDesktop().browse(new URI(s.substring(0, s.lastIndexOf("/") + 1)));
+					}
+				} catch (Exception e) {
+					Log.error(StartMenu.class, e.getMessage());
+				}
+			}
+		}, "logo.png", 48, 48, 0.3);
+		iconButton.setSelected(true);
+		return iconButton;
 	}
 }

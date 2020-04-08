@@ -9,10 +9,9 @@ import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.lang.reflect.Method;
-import java.text.ParseException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -132,7 +131,7 @@ public class GenericTable<T extends AObject> extends JComponent {
 			if (AObject.isByteArray(tm.columnClasses.get(i))) {
 				t.getColumn(tm.columnNames.get(i)).setCellRenderer(new ImageRenderer());
 				t.getColumn(tm.columnNames.get(i)).setMaxWidth(NT.STUDENT_IMAGE_WIDTH + 3);
-			} else if (AObject.isDate(tm.columnClasses.get(i))) {
+			} else if (AObject.isLocalDate(tm.columnClasses.get(i))) {
 				t.getColumn(tm.columnNames.get(i)).setCellRenderer(new DateRenderer());
 				t.getColumn(tm.columnNames.get(i)).setCellEditor(new DateEditor());
 			} else if (AObject.isList(tm.columnClasses.get(i))) {
@@ -145,12 +144,18 @@ public class GenericTable<T extends AObject> extends JComponent {
 		}
 		for (Integer i : tm.actions.keySet()) {
 			TableActionMouseListener ml = new TableActionMouseListener(tm.actions.get(i), i);
-			IconAndTextRenderer r = ((IconAndTextRenderer) t.getColumn(tm.columnNames.get(i)).getCellRenderer());
-			r.setMouseListener(ml);
-			r.setTextToDisplay(tm.actions.get(i).getText());
-			r.setIconToDisplay(tm.actions.get(i).getIcon());
-			if (tm.actions.get(i).getText().isEmpty()) {
-				t.getColumn(tm.columnNames.get(i)).setMaxWidth(NT.STUDENT_IMAGE_WIDTH + 3);
+			if (((GenericRenderer) t.getColumn(tm.columnNames.get(i)).getCellRenderer()) instanceof GenericTable.IconAndTextRenderer) {
+				IconAndTextRenderer r = ((IconAndTextRenderer) t.getColumn(tm.columnNames.get(i)).getCellRenderer());
+				r.setMouseListener(ml);
+				r.setTextToDisplay(tm.actions.get(i).getText());
+				r.setIconToDisplay(tm.actions.get(i).getIcon());
+				if (tm.actions.get(i).getText().isEmpty()) {
+					t.getColumn(tm.columnNames.get(i)).setMaxWidth(NT.STUDENT_IMAGE_WIDTH + 3);
+				}
+			} else {
+				GenericRenderer r = ((GenericRenderer) t.getColumn(tm.columnNames.get(i)).getCellRenderer());
+				r.setMouseListener(ml);
+				r.setIcon(ImageStore.getScaledImage(ImageStore.getImageIcon(tm.actions.get(i).getIcon()), NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT));
 			}
 		}
 
@@ -160,11 +165,18 @@ public class GenericTable<T extends AObject> extends JComponent {
 		SwingUtilities.invokeLater(new Runnable() {
 			public void run() {
 				try {
-					int[] indices = new int[tm.columnNames.size()];
+					List<Integer> indices = new ArrayList<>();
 					for (int i = 0; i < tm.columnNames.size(); i++) {
-						indices[i] = i;
+						if (!tm.actions.keySet().contains(i)) {
+							indices.add(i);
+							Arrays.asList(1);
+						}
 					}
-					RowFilter<TableModel, Object> rf = RowFilter.regexFilter("(?i)" + filterText, indices);
+					int[] idx = new int[indices.size()];
+					for (int i = 0; i < indices.size(); i++) {
+						idx[i] = indices.get(i);
+					}
+					RowFilter<TableModel, Object> rf = RowFilter.regexFilter("(?i)" + filterText, idx);
 					sorter.setRowFilter(rf);
 				} catch (Exception e) {
 					Log.error(GenericTable.class, "Could not set regex filter: " + e.getMessage());
@@ -297,8 +309,8 @@ public class GenericTable<T extends AObject> extends JComponent {
 	private class DateRenderer extends GenericRenderer {
 		@Override
 		public void setValue(Object value) {
-			if (AObject.isDate(value)) {
-				setText(NT.SDF_FOR_DISPLAYING_DATE_ONLY.format((Date) value).toString());
+			if (AObject.isLocalDate(value)) {
+				setText(NT.DF_FOR_DISPLAYING_DATE.format((LocalDate) value).toString());
 			} else {
 				Log.error(GenericTable.class, "DateRenderer: given object was not a date!");
 			}
@@ -330,9 +342,8 @@ public class GenericTable<T extends AObject> extends JComponent {
 				} else {
 					setText(L10n.getString("valueNotYetSet"));
 				}
-				setIcon(ImageStore.getScaledImage(ImageStore.getImageIcon("edit.png"), NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT));
 			} else if (AObject.isLazyAObject(value)) {
-				setText(Model.getInstance().expandLazyAObject((LazyAObject<?>) value).toString());
+				setText(((AObject) Model.getInstance().expandLazyAObject((LazyAObject<?>) value)).getStringRepresentation());
 			} else {
 				Log.error(GenericTable.class, "ListRenderer: given object was not a LazyAObject!");
 			}
@@ -397,12 +408,12 @@ public class GenericTable<T extends AObject> extends JComponent {
 
 	private class DateEditor extends AbstractCellEditor implements TableCellEditor {
 		private JTextField textField = new JTextField();
-		private Date currentDate;
+		private LocalDate currentDate;
 
 		@Override
 		public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int rowIndex, int vColIndex) {
-			currentDate = (Date) value;
-			String s = NT.SDF_FOR_DISPLAYING_DATE_ONLY.format(currentDate).toString();
+			currentDate = (LocalDate) value;
+			String s = NT.DF_FOR_DISPLAYING_DATE.format(currentDate).toString();
 			textField.setText(s);
 			return textField;
 		}
@@ -411,12 +422,11 @@ public class GenericTable<T extends AObject> extends JComponent {
 		public Object getCellEditorValue() {
 			String value = textField.getText();
 			try {
-				return NT.SDF_FOR_DISPLAYING_DATE_ONLY.parse((String) value);
-			} catch (ParseException e) {
-				GenericDialog dialog = new GenericDialog(L10n.getString("wrongFormat"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("pleaseEnterDateInFollowingFormat") + ": " + NT.SDF_FOR_DISPLAYING_DATE_ONLY.toPattern().toUpperCase()))), true);
+				return NT.DF_FOR_DISPLAYING_DATE.parse((String) value);
+			} catch (Exception e) {
+				GenericDialog dialog = new GenericDialog(L10n.getString("wrongFormat"), Arrays.asList(new JLabel(LabelUtil.styleLabel(L10n.getString("pleaseEnterDateInFollowingFormat") + ": " + NT.FORMAT_FOR_DISPLAYING_DATE.toUpperCase()))), true);
 				dialog.show();
-
-				Log.error(GenericTable.class, "Could not parse date, probably wrong format, use: " + NT.SDF_FOR_DISPLAYING_DATE_ONLY + "!");
+				Log.info(GenericTable.class, "Could not parse date, probably wrong format, use: " + NT.FORMAT_FOR_DISPLAYING_DATE.toUpperCase() + "!");
 			}
 			return currentDate;
 		}

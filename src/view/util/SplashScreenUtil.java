@@ -49,6 +49,7 @@ public class SplashScreenUtil {
 					splashScreen.setLocationRelativeTo(null);
 					splashScreen.setBackground(new Color(0, 0, 0, 0));
 					splashScreen.setModalExclusionType(Dialog.ModalExclusionType.APPLICATION_EXCLUDE);
+					splashScreen.setAlwaysOnTop(true);
 					splashScreen.setVisible(true);
 				} catch (Exception e) {
 					Log.error(SplashScreenUtil.class, e.getMessage());

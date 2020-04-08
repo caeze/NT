@@ -1,6 +1,6 @@
 package model;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 /**
@@ -13,7 +13,7 @@ public abstract class AGrade extends AObject {
 	protected UUID _001_uuid;
 	protected LazyAObject<Course> _002_course;
 	protected LazyAObject<Student> _003_student;
-	protected Date _004_date;
+	protected LocalDate _004_date;
 	protected double _005_grade;
 	protected String _006_name;
 	protected String _007_comment;
@@ -21,7 +21,7 @@ public abstract class AGrade extends AObject {
 	public AGrade() {
 	}
 
-	public AGrade(UUID uuid, LazyAObject<Course> course, LazyAObject<Student> student, Date date, double grade, String name, String comment) {
+	public AGrade(UUID uuid, LazyAObject<Course> course, LazyAObject<Student> student, LocalDate date, double grade, String name, String comment) {
 		this._001_uuid = uuid;
 		this._002_course = course;
 		this._003_student = student;
@@ -65,11 +65,11 @@ public abstract class AGrade extends AObject {
 		this._003_student = student;
 	}
 
-	public Date getDate() {
+	public LocalDate getDate() {
 		return _004_date;
 	}
 
-	public void setDate(Date date) {
+	public void setDate(LocalDate date) {
 		this._004_date = date;
 	}
 

@@ -1,6 +1,5 @@
 package view;
 
-import java.awt.Desktop;
 import java.awt.Graphics;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -15,7 +14,6 @@ import java.awt.event.MouseWheelEvent;
 import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -29,7 +27,6 @@ import console.Log;
 import control.Control;
 import model.RelativePoint;
 import nt.NT;
-import preferences.Preferences;
 import view.img.ImageStore;
 import view.itf.IViewComponent;
 import view.l10n.L10n;
@@ -82,28 +79,13 @@ public class ImageChooser implements IViewComponent {
 	@Override
 	public List<JComponent> getComponentsCenter() {
 		List<JComponent> retList = new ArrayList<>();
-		JButton icon = ButtonUtil.createButton(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					if (Desktop.isDesktopSupported()) {
-						String s = Preferences.getInstance().projectLocation;
-						Desktop.getDesktop().browse(new URI(s.substring(0, s.lastIndexOf("/") + 1)));
-					}
-				} catch (Exception e) {
-					Log.error(ImageChooser.class, e.getMessage());
-				}
-			}
-		}, "logo.png", 48, 48);
-		icon.setSelected(true);
-		retList.add(icon);
+		retList.add(View.getInstance().getLogoButtonForTopCenter());
 		return retList;
 	}
 
 	@Override
 	public List<JButton> getButtonsRight() {
 		List<JButton> retList = new ArrayList<>();
-		retList.add(ButtonUtil.createButton("empty.png", 40, 40));
 		JButton exitButton = ButtonUtil.createButton(new Runnable() {
 			@Override
 			public void run() {
@@ -213,7 +195,6 @@ public class ImageChooser implements IViewComponent {
 			int northWestY = RelativePoint.relativeToAbsoluteY(northWest.getY(), getHeight(), (int) (PADDING * getHeight()));
 			int southEastX = RelativePoint.relativeToAbsoluteX(southEast.getX(), getWidth(), (int) (PADDING * getWidth()));
 			int southEastY = RelativePoint.relativeToAbsoluteY(southEast.getY(), getHeight(), (int) (PADDING * getHeight()));
-			g.drawRect(northWestX, northWestY, southEastX - northWestX, southEastY - northWestY);
 
 			availableWidth = southEastX - northWestX;
 			availableHeight = southEastY - northWestY;
@@ -296,10 +277,10 @@ public class ImageChooser implements IViewComponent {
 		@Override
 		public void mouseDragged(MouseEvent e) {
 			Log.debug(ImageChooser.class, "mouseDragged, Mode: " + mode);
-			
+
 			selectionStartingPointX = RelativePoint.relativeToAbsoluteX(selectionStartingPoint.getX(), getWidth(), (int) (PADDING * getWidth()));
 			selectionStartingPointY = RelativePoint.relativeToAbsoluteY(selectionStartingPoint.getY(), getHeight(), (int) (PADDING * getHeight()));
-			
+
 			int w = e.getX() - selectionStartingPointX;
 			int h = e.getY() - selectionStartingPointY;
 			if ((double) (w) / (double) (h) < STUDENT_IMAGE_WIDTH_TO_HEIGHT_RATIO) {
@@ -311,7 +292,31 @@ public class ImageChooser implements IViewComponent {
 			double x = RelativePoint.absoluteToRelativeX(selectionStartingPointX + w, getWidth(), (int) (PADDING * getWidth()));
 			double y = RelativePoint.absoluteToRelativeY(selectionStartingPointY + h, getHeight(), (int) (PADDING * getHeight()));
 
-			if (x >= 0.0 && y >= 0.0 && x <= 1.0 && y <= 1.0) {
+			int northWestX = RelativePoint.relativeToAbsoluteX(northWest.getX(), getWidth(), (int) (PADDING * getWidth()));
+			int northWestY = RelativePoint.relativeToAbsoluteY(northWest.getY(), getHeight(), (int) (PADDING * getHeight()));
+			int southEastX = RelativePoint.relativeToAbsoluteX(southEast.getX(), getWidth(), (int) (PADDING * getWidth()));
+			int southEastY = RelativePoint.relativeToAbsoluteY(southEast.getY(), getHeight(), (int) (PADDING * getHeight()));
+			int aW = southEastX - northWestX;
+			int aH = southEastY - northWestY;
+			int paddingX = northWestX;
+			int paddingY = northWestY;
+			if ((double) (aW) / (double) (aH) > imageWidthToHeightRatio) {
+				aW = (int) (imageWidthToHeightRatio * aH);
+				paddingX += (southEastX - northWestX - aW) / 2;
+			} else {
+				aH = (int) (1 / imageWidthToHeightRatio * aW);
+				paddingY += (southEastY - northWestY - aH) / 2;
+			}
+			int imageAreaStartX = paddingX;
+			int imageAreaStartY = paddingY;
+			int imageAreaEndX = aW + paddingX;
+			int imageAreaEndY = aH + paddingY;
+			int xA = RelativePoint.relativeToAbsoluteX(x, getWidth(), (int) (PADDING * getWidth()));
+			int yA = RelativePoint.relativeToAbsoluteY(y, getHeight(), (int) (PADDING * getHeight()));
+			boolean startPointIsInArea = (imageAreaStartX < selectionStartingPointX && selectionStartingPointX < imageAreaEndX && imageAreaStartY < selectionStartingPointY && selectionStartingPointY < imageAreaEndY);
+			boolean endPointIsInArea = (imageAreaStartX < xA && xA < imageAreaEndX && imageAreaStartY < yA && yA < imageAreaEndY);
+
+			if (x >= 0.0 && y >= 0.0 && x <= 1.0 && y <= 1.0 && startPointIsInArea && endPointIsInArea) {
 				selectionEndingPoint = new RelativePoint(UUID.randomUUID(), x, y);
 			} else {
 				Log.debug(ImageChooser.class, "Point outside the area! x=" + x + ", y=" + y + ", w=" + w + ", h= " + h);

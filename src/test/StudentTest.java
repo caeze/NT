@@ -1,7 +1,7 @@
 package test;
 
 import java.lang.reflect.Constructor;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import model.Model;
@@ -21,7 +21,7 @@ public class StudentTest implements Testable {
 		// prepare data
 		Model.getInstance().loadEmptyProject();
 		byte[] bytes = ImageStore.getBytesFromImage(ImageStore.getScaledImage(ImageStore.getImageIcon(""), NT.STUDENT_IMAGE_WIDTH, NT.STUDENT_IMAGE_HEIGHT));
-		Student student = new Student(UUID.randomUUID(), "firstName", "lastName", new Date(), "email", "mobilePhone", "comment", bytes);
+		Student student = new Student(UUID.randomUUID(), "firstName", "lastName", LocalDate.now(), "email", "mobilePhone", "comment", bytes);
 
 		// execute tests
 		String studentData = student.toJsonString();

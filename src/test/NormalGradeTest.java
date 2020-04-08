@@ -1,7 +1,7 @@
 package test;
 
 import java.lang.reflect.Constructor;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import model.Course;
@@ -19,7 +19,7 @@ public class NormalGradeTest implements Testable {
 
 	public boolean jsonTest() {
 		// prepare data
-		NormalGrade normalGrade = new NormalGrade(UUID.randomUUID(), new LazyAObject<Course>(UUID.randomUUID()), new LazyAObject<Student>(UUID.randomUUID()), new Date(), 3.7, "name", "comment");
+		NormalGrade normalGrade = new NormalGrade(UUID.randomUUID(), new LazyAObject<Course>(UUID.randomUUID()), new LazyAObject<Student>(UUID.randomUUID()), LocalDate.now(), 3.7, "name", "comment");
 
 		// execute tests
 		String normalGradeData = normalGrade.toJsonString();

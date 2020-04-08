@@ -1,7 +1,7 @@
 package test;
 
 import java.lang.reflect.Constructor;
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 import model.ComputedAverageGrade;
@@ -19,7 +19,7 @@ public class ComputedAverageGradeTest implements Testable {
 
 	public boolean jsonTest() {
 		// prepare data
-		ComputedAverageGrade computedAverageGrade = new ComputedAverageGrade(UUID.randomUUID(), new LazyAObject<Course>(UUID.randomUUID()), new LazyAObject<Student>(UUID.randomUUID()), new Date(), 3.7, "name", "comment");
+		ComputedAverageGrade computedAverageGrade = new ComputedAverageGrade(UUID.randomUUID(), new LazyAObject<Course>(UUID.randomUUID()), new LazyAObject<Student>(UUID.randomUUID()), LocalDate.now(), 3.7, "name", "comment");
 
 		// execute tests
 		String computedAverageGradeData = computedAverageGrade.toJsonString();

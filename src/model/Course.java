@@ -16,9 +16,8 @@ public class Course extends AObject {
 	private String _003_grade;
 	private String _004_letter;
 	private LazyAObject<Room> _005_room;
-	private List<LazyAObject<Student>> _006_students;
-	private List<StudentOnTableMapping> _007_studentOnTableMapping;
-	private String _008_comment;
+	private List<StudentOnTableMapping> _006_studentOnTableMapping;
+	private String _007__comment;
 
 	public Course() {
 	}
@@ -29,9 +28,8 @@ public class Course extends AObject {
 		this._003_grade = grade;
 		this._004_letter = letter;
 		this._005_room = room;
-		this._006_students = students;
-		this._007_studentOnTableMapping = studentOnTableMapping;
-		this._008_comment = comment;
+		this._006_studentOnTableMapping = studentOnTableMapping;
+		this._007__comment = comment;
 	}
 
 	public Course(Course other) {
@@ -40,9 +38,8 @@ public class Course extends AObject {
 		this._003_grade = other._003_grade;
 		this._004_letter = other._004_letter;
 		this._005_room = other._005_room;
-		this._006_students = other._006_students;
-		this._007_studentOnTableMapping = other._007_studentOnTableMapping;
-		this._008_comment = other._008_comment;
+		this._006_studentOnTableMapping = other._006_studentOnTableMapping;
+		this._007__comment = other._007__comment;
 	}
 
 	public UUID getUuid() {
@@ -85,40 +82,31 @@ public class Course extends AObject {
 		this._005_room = room;
 	}
 
-	public List<LazyAObject<Student>> getStudents() {
-		return _006_students;
-	}
-
-	public void setStudents(List<LazyAObject<Student>> students) {
-		this._006_students = students;
-	}
-
 	public List<StudentOnTableMapping> getStudentOnTableMapping() {
-		return _007_studentOnTableMapping;
+		return _006_studentOnTableMapping;
 	}
 
 	public void setStudentOnTableMapping(List<StudentOnTableMapping> studentOnTableMapping) {
-		this._007_studentOnTableMapping = studentOnTableMapping;
+		this._006_studentOnTableMapping = studentOnTableMapping;
 	}
 
 	public String getComment() {
-		return _008_comment;
+		return _007__comment;
 	}
 
 	public void setComment(String comment) {
-		this._008_comment = comment;
+		this._007__comment = comment;
 	}
 
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((_008_comment == null) ? 0 : _008_comment.hashCode());
+		result = prime * result + ((_007__comment == null) ? 0 : _007__comment.hashCode());
 		result = prime * result + ((_003_grade == null) ? 0 : _003_grade.hashCode());
 		result = prime * result + ((_004_letter == null) ? 0 : _004_letter.hashCode());
 		result = prime * result + ((_005_room == null) ? 0 : _005_room.hashCode());
-		result = prime * result + ((_007_studentOnTableMapping == null) ? 0 : _007_studentOnTableMapping.hashCode());
-		result = prime * result + ((_006_students == null) ? 0 : _006_students.hashCode());
+		result = prime * result + ((_006_studentOnTableMapping == null) ? 0 : _006_studentOnTableMapping.hashCode());
 		result = prime * result + ((_002_subject == null) ? 0 : _002_subject.hashCode());
 		result = prime * result + ((_001_uuid == null) ? 0 : _001_uuid.hashCode());
 		return result;
@@ -133,10 +121,10 @@ public class Course extends AObject {
 		if (getClass() != obj.getClass())
 			return false;
 		Course other = (Course) obj;
-		if (_008_comment == null) {
-			if (other._008_comment != null)
+		if (_007__comment == null) {
+			if (other._007__comment != null)
 				return false;
-		} else if (!_008_comment.equals(other._008_comment))
+		} else if (!_007__comment.equals(other._007__comment))
 			return false;
 		if (_003_grade == null) {
 			if (other._003_grade != null)
@@ -153,15 +141,10 @@ public class Course extends AObject {
 				return false;
 		} else if (!_005_room.equals(other._005_room))
 			return false;
-		if (_007_studentOnTableMapping == null) {
-			if (other._007_studentOnTableMapping != null)
+		if (_006_studentOnTableMapping == null) {
+			if (other._006_studentOnTableMapping != null)
 				return false;
-		} else if (!_007_studentOnTableMapping.equals(other._007_studentOnTableMapping))
-			return false;
-		if (_006_students == null) {
-			if (other._006_students != null)
-				return false;
-		} else if (!_006_students.equals(other._006_students))
+		} else if (!_006_studentOnTableMapping.equals(other._006_studentOnTableMapping))
 			return false;
 		if (_002_subject == null) {
 			if (other._002_subject != null)
@@ -178,6 +161,6 @@ public class Course extends AObject {
 
 	@Override
 	public String toString() {
-		return "Course [uuid=" + _001_uuid + ", subject=" + _002_subject + ", grade=" + _003_grade + ", letter=" + _004_letter + ", room=" + _005_room + ", students=" + _006_students + ", studentOnTableMapping=" + _007_studentOnTableMapping + ", comment=" + _008_comment + "]";
+		return "Course [uuid=" + _001_uuid + ", subject=" + _002_subject + ", grade=" + _003_grade + ", letter=" + _004_letter + ", room=" + _005_room + ", studentOnTableMapping=" + _006_studentOnTableMapping + ", comment=" + _007__comment + "]";
 	}
 }

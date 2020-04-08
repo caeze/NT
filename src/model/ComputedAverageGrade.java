@@ -1,6 +1,6 @@
 package model;
 
-import java.util.Date;
+import java.time.LocalDate;
 import java.util.UUID;
 
 /**
@@ -14,7 +14,7 @@ public class ComputedAverageGrade extends AGrade {
 	public ComputedAverageGrade() {
 	}
 
-	public ComputedAverageGrade(UUID uuid, LazyAObject<Course> course, LazyAObject<Student> student, Date date, double grade, String name, String comment) {
+	public ComputedAverageGrade(UUID uuid, LazyAObject<Course> course, LazyAObject<Student> student, LocalDate date, double grade, String name, String comment) {
 		super(uuid, course, student, date, grade, name, comment);
 	}
 

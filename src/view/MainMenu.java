@@ -1,14 +1,10 @@
 package view;
 
-import java.awt.Desktop;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.net.URI;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -17,10 +13,8 @@ import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 
-import console.Log;
 import control.Control;
 import model.Model;
-import preferences.Preferences;
 import view.itf.IViewComponent;
 import view.l10n.L10n;
 import view.util.ButtonUtil;
@@ -37,7 +31,9 @@ import view.util.LabelUtil;
 public class MainMenu implements IViewComponent {
 
 	JButton currentYearButton;
-	
+	JButton undoButton = null;
+	JButton redoButton = null;
+
 	@Override
 	public List<JButton> getButtonsLeft() {
 		List<JButton> retList = new ArrayList<>();
@@ -59,28 +55,33 @@ public class MainMenu implements IViewComponent {
 			}
 		}, "save.png", 40, 40, L10n.getString("save"));
 		retList.add(saveButton);
-		retList.add(ButtonUtil.createButton("empty.png", 40, 40));
+		undoButton = ButtonUtil.createButton(new Runnable() {
+			@Override
+			public void run() {
+				undoButton.setEnabled(Model.getInstance().canUndo());
+				Model.getInstance().undo();
+				View.getInstance().repaint();
+			}
+		}, "revert.png", 40, 40, L10n.getString("undo"));
+		retList.add(undoButton);
+		undoButton.setEnabled(Model.getInstance().canUndo());
+		redoButton = ButtonUtil.createButton(new Runnable() {
+			@Override
+			public void run() {
+				redoButton.setEnabled(Model.getInstance().canRedo());
+				Model.getInstance().redo();
+				View.getInstance().repaint();
+			}
+		}, "reload.png", 40, 40, L10n.getString("redo"));
+		retList.add(redoButton);
+		redoButton.setEnabled(Model.getInstance().canRedo());
 		return retList;
 	}
 
 	@Override
 	public List<JComponent> getComponentsCenter() {
 		List<JComponent> retList = new ArrayList<>();
-		JButton icon = ButtonUtil.createButton(new Runnable() {
-			@Override
-			public void run() {
-				try {
-					if (Desktop.isDesktopSupported()) {
-						String s = Preferences.getInstance().projectLocation;
-						Desktop.getDesktop().browse(new URI(s.substring(0, s.lastIndexOf("/") + 1)));
-					}
-				} catch (Exception e) {
-					Log.error(MainMenu.class, e.getMessage());
-				}
-			}
-		}, "logo.png", 48, 48);
-		icon.setSelected(true);
-		retList.add(icon);
+		retList.add(View.getInstance().getLogoButtonForTopCenter());
 		return retList;
 	}
 
@@ -137,11 +138,10 @@ public class MainMenu implements IViewComponent {
 				options.add(L10n.getString("cancel"));
 				JLabel explanation = new JLabel(LabelUtil.styleLabel(L10n.getString("selectYear")));
 				JComboBox<String> years = new JComboBox<>();
-				Date now = new Date();
-				Calendar c = new GregorianCalendar();
-				c.setTime(now);
-				for (int i = -5; i < 5; i++) {
-					String year = (c.get(Calendar.YEAR) + i) + "/" + (c.get(Calendar.YEAR) + 1 + i);
+				LocalDate now = LocalDate.now();
+				int offset = 10;
+				for (int i = -offset / 2; i < offset; i++) {
+					String year = (now.getYear() + i) + "/" + (now.getYear() + 1 + i);
 					years.addItem(year);
 				}
 				years.setSelectedItem(Model.getInstance().getCurrentProject().getYear());
@@ -161,16 +161,16 @@ public class MainMenu implements IViewComponent {
 		}, "star.png", L10n.getString("term") + ": " + Model.getInstance().getCurrentProject().getYear(), 18, ColorStore.BLACK, L10n.getString("editYear"));
 		retComponent.add(currentYearButton, constraints);
 
-		constraints.gridy = 1;
+		constraints.gridy++;
 		JButton manageGradesButton = ButtonUtil.createButton(new Runnable() {
 			@Override
 			public void run() {
-
+				View.getInstance().pushViewComponent(new ManageGradesMenu());
 			}
 		}, "done.png", L10n.getString("manageGrades"), 18, ColorStore.BLACK, L10n.getString("manageGrades"));
 		retComponent.add(manageGradesButton, constraints);
 
-		constraints.gridy = 2;
+		constraints.gridy++;
 		JButton manageCoursesButton = ButtonUtil.createButton(new Runnable() {
 			@Override
 			public void run() {
@@ -179,23 +179,32 @@ public class MainMenu implements IViewComponent {
 		}, "right.png", L10n.getString("manageCourses"), 18, ColorStore.BLACK, L10n.getString("manageCourses"));
 		retComponent.add(manageCoursesButton, constraints);
 
-		constraints.gridy = 3;
+		constraints.gridy++;
 		JButton manageStudentsButton = ButtonUtil.createButton(new Runnable() {
 			@Override
 			public void run() {
-				View.getInstance().pushViewComponent(new StudentsList(false));
+				View.getInstance().pushViewComponent(new StudentsList(StudentsList.Action.EDIT_STUDENTS));
 			}
 		}, "persons.png", L10n.getString("manageStudents"), 18, ColorStore.BLACK, L10n.getString("manageStudents"));
 		retComponent.add(manageStudentsButton, constraints);
 
-		constraints.gridy = 4;
+		constraints.gridy++;
 		JButton manageRoomsButton = ButtonUtil.createButton(new Runnable() {
 			@Override
 			public void run() {
-				View.getInstance().pushViewComponent(new RoomsList());
+				View.getInstance().pushViewComponent(new RoomsList(RoomsList.Action.EDIT_ROOMS));
 			}
 		}, "home.png", L10n.getString("manageRooms"), 18, ColorStore.BLACK, L10n.getString("manageRooms"));
 		retComponent.add(manageRoomsButton, constraints);
+
+		constraints.gridy++;
+		JButton importDataButton = ButtonUtil.createButton(new Runnable() {
+			@Override
+			public void run() {
+				View.getInstance().pushViewComponent(new DataImporterStarter());
+			}
+		}, "import.png", L10n.getString("importData"), 18, ColorStore.BLACK, L10n.getString("manageRooms"));
+		retComponent.add(importDataButton, constraints);
 
 		return retComponent;
 	}

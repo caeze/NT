@@ -11,22 +11,25 @@ import java.util.UUID;
 public class StudentOnTableMapping extends AObject {
 
 	private UUID _001_uuid;
-	private UUID _002_studentUuid;
-	private UUID _003_tableUuid;
+	private LazyAObject<Student> _002_student;
+	private LazyAObject<Table> _003_table;
+	private int _004_positionOnTable;
 
 	public StudentOnTableMapping() {
 	}
 
-	public StudentOnTableMapping(UUID uuid, UUID studentUuid, UUID tableUuid) {
+	public StudentOnTableMapping(UUID uuid, LazyAObject<Student> student, LazyAObject<Table> table, int positionOnTable) {
 		this._001_uuid = uuid;
-		this._002_studentUuid = studentUuid;
-		this._003_tableUuid = tableUuid;
+		this._002_student = student;
+		this._003_table = table;
+		this._004_positionOnTable = positionOnTable;
 	}
 
 	public StudentOnTableMapping(StudentOnTableMapping other) {
 		this._001_uuid = other._001_uuid;
-		this._002_studentUuid = other._002_studentUuid;
-		this._003_tableUuid = other._003_tableUuid;
+		this._002_student = other._002_student;
+		this._003_table = other._003_table;
+		this._004_positionOnTable = other._004_positionOnTable;
 	}
 
 	public UUID getUuid() {
@@ -37,20 +40,28 @@ public class StudentOnTableMapping extends AObject {
 		this._001_uuid = uuid;
 	}
 
-	public UUID getStudentUuid() {
-		return _002_studentUuid;
+	public LazyAObject<Student> getStudent() {
+		return _002_student;
 	}
 
-	public void setStudentUuid(UUID studentUuid) {
-		this._002_studentUuid = studentUuid;
+	public void setStudent(LazyAObject<Student> student) {
+		this._002_student = student;
 	}
 
-	public UUID getTableUuid() {
-		return _003_tableUuid;
+	public LazyAObject<Table> getTable() {
+		return _003_table;
 	}
 
-	public void setTableUuid(UUID tableUuid) {
-		this._003_tableUuid = tableUuid;
+	public void setTable(LazyAObject<Table> table) {
+		this._003_table = table;
+	}
+
+	public int getPositionOnTable() {
+		return _004_positionOnTable;
+	}
+
+	public void setPositionOnTable(int positionOnTable) {
+		this._004_positionOnTable = positionOnTable;
 	}
 
 	@Override
@@ -58,8 +69,9 @@ public class StudentOnTableMapping extends AObject {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((_001_uuid == null) ? 0 : _001_uuid.hashCode());
-		result = prime * result + ((_002_studentUuid == null) ? 0 : _002_studentUuid.hashCode());
-		result = prime * result + ((_003_tableUuid == null) ? 0 : _003_tableUuid.hashCode());
+		result = prime * result + ((_002_student == null) ? 0 : _002_student.hashCode());
+		result = prime * result + ((_003_table == null) ? 0 : _003_table.hashCode());
+		result = prime * result + _004_positionOnTable;
 		return result;
 	}
 
@@ -77,21 +89,23 @@ public class StudentOnTableMapping extends AObject {
 				return false;
 		} else if (!_001_uuid.equals(other._001_uuid))
 			return false;
-		if (_002_studentUuid == null) {
-			if (other._002_studentUuid != null)
+		if (_002_student == null) {
+			if (other._002_student != null)
 				return false;
-		} else if (!_002_studentUuid.equals(other._002_studentUuid))
+		} else if (!_002_student.equals(other._002_student))
 			return false;
-		if (_003_tableUuid == null) {
-			if (other._003_tableUuid != null)
+		if (_003_table == null) {
+			if (other._003_table != null)
 				return false;
-		} else if (!_003_tableUuid.equals(other._003_tableUuid))
+		} else if (!_003_table.equals(other._003_table))
+			return false;
+		if (_004_positionOnTable != other._004_positionOnTable)
 			return false;
 		return true;
 	}
 
 	@Override
 	public String toString() {
-		return "StudentOnTableMapping [uuid=" + _001_uuid + ", studentUuid=" + _002_studentUuid + ", tableUuid=" + _003_tableUuid + "]";
+		return "StudentOnTableMapping [_001_uuid=" + _001_uuid + ", _002_student=" + _002_student + ", _003_table=" + _003_table + ", _004_positionOnTable=" + _004_positionOnTable + "]";
 	}
 }

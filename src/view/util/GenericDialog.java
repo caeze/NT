@@ -6,6 +6,8 @@ import java.util.List;
 import javax.swing.JComponent;
 import javax.swing.JOptionPane;
 
+import view.View;
+
 /**
  * Dialog utility class.
  *
@@ -47,12 +49,12 @@ public class GenericDialog {
 			for (int i = 0; i < customOptions.size(); i++) {
 				options[i] = customOptions.get(i);
 			}
-			return JOptionPane.showOptionDialog(null, components.toArray(), title, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[customOptions.size() - 1]);
+			return JOptionPane.showOptionDialog(View.getInstance(), components.toArray(), title, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, options, options[customOptions.size() - 1]);
 		} else {
 			if (!suppressCancelButton) {
-				return JOptionPane.showOptionDialog(null, components.toArray(), title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+				return JOptionPane.showOptionDialog(View.getInstance(), components.toArray(), title, JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
 			}
-			return JOptionPane.showOptionDialog(null, components.toArray(), title, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
+			return JOptionPane.showOptionDialog(View.getInstance(), components.toArray(), title, JOptionPane.DEFAULT_OPTION, JOptionPane.PLAIN_MESSAGE, null, null, null);
 		}
 	}
 }
