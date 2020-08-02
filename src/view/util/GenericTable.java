@@ -60,6 +60,10 @@ public class GenericTable<T extends AObject> extends JComponent {
 		t.setModel(tm);
 		JScrollPane scrollPane = new JScrollPane(t);
 
+		if (items.isEmpty()) {
+			ShowToast.showToastCenteredStatic(L10n.getString("noEntriesPleaseAddWithPlusButton"), 3000, ColorStore.BACKGROUND_DARK);
+		}
+		
 		GridBagLayout gridBagLayout = new GridBagLayout();
 		GridBagConstraints constraints = new GridBagConstraints();
 		setLayout(gridBagLayout);
